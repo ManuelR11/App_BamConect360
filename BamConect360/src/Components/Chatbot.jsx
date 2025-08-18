@@ -254,7 +254,7 @@ export default function BamChatbot() {
 			fontSize: "14px",
 		},
 		chatHeader: {
-			background: "linear-gradient(135deg, #14b8a6, #0d9488)",
+			background: "linear-gradient(135deg, #14b8a6, #73C18D)",
 			color: "white",
 			padding: "24px",
 			textAlign: "center",
@@ -314,7 +314,7 @@ export default function BamChatbot() {
 			flexShrink: 0,
 		},
 		botAvatar: {
-			background: "linear-gradient(135deg, #14b8a6, #0d9488)",
+			background: "linear-gradient(135deg, #14b8a6, #73C18D)",
 			color: "white",
 		},
 		userAvatarMsg: {

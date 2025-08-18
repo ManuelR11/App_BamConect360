@@ -90,7 +90,7 @@ export default function BamConecta360() {
 			title: "Guías y procedimientos",
 			description:
 				"Accede a documentación completa y actualizada para todos tus procesos de trabajo.",
-			gradient: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
+			gradient: "linear-gradient(135deg, #7AC9E8, #1d4ed8)",
 		},
 		{
 			id: 2,
@@ -98,7 +98,7 @@ export default function BamConecta360() {
 			title: "Soporte interno",
 			description:
 				"Asistencia técnica especializada disponible las 24 horas del día para resolver tus dudas.",
-			gradient: "linear-gradient(135deg, #8b5cf6, #7c3aed)",
+			gradient: "linear-gradient(135deg, #8567C7, #7c3aed)",
 		},
 		{
 			id: 3,
@@ -179,7 +179,7 @@ export default function BamConecta360() {
 			fontSize: "14px",
 		},
 		hero: {
-			background: "linear-gradient(135deg, #fbbf24, #f97316, #ef4444)",
+			background: "linear-gradient(135deg, #F0D942, #f97316, #FFB002)",
 			position: "relative",
 			overflow: "hidden",
 			padding: "96px 24px",
@@ -300,7 +300,7 @@ export default function BamConecta360() {
 			display: "inline-flex",
 			alignItems: "center",
 			gap: "12px",
-			background: "linear-gradient(135deg, #3b82f6, #8b5cf6)",
+			background: "linear-gradient(135deg, #7AC9E8, #8567C7)",
 			color: "white",
 			padding: "16px 32px",
 			borderRadius: "50px",
@@ -457,7 +457,7 @@ export default function BamConecta360() {
 										navigate("/guias"); // 👈 Redirección personalizada
 									}
 									if (service.id === 2) {
-										//navigate("/soporte");
+										navigate("/soporte");
 									}
 									if (service.id === 3) {
 										navigate("/chatbot");

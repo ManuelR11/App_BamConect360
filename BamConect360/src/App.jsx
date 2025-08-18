@@ -5,6 +5,7 @@ import { BrowserRouter } from "react-router-dom";
 import Guias from "./Components/Guias";
 import { Routes, Route } from "react-router-dom";
 import Chatbot from "./Components/Chatbot";
+import Soporte from "./Components/SoporteInterno";
 
 function App() {
 	const [count, setCount] = useState(0);
@@ -14,6 +15,7 @@ function App() {
 			<Route path="/" element={<BamConecta360 />} />
 			<Route path="/guias" element={<Guias />} />
 			<Route path="/chatbot" element={<Chatbot />} />
+			<Route path="/soporte" element={<Soporte />} />
 		</Routes>
 	);
 }
