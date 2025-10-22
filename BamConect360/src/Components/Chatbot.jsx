@@ -1,13 +1,18 @@
 import React, { useState, useEffect, useRef } from "react";
 
 export default function BamChatbot() {
+	const API_BASE_URL =
+		window.location.hostname === "localhost"
+			? "http://localhost:3001/api"
+			: "https://tu-backend-railway.railway.app/api"; // Cambiarás esto por tu URL de Railway
+
 	const [isVisible, setIsVisible] = useState(false);
 	const [messages, setMessages] = useState([
 		{
 			id: 1,
 			type: "bot",
 			content:
-				"¡Hola! Soy el asistente de Bam Conecta 360. ¿En qué puedo ayudarte hoy?",
+				"¡Hola! Soy el asistente de Bam Conecta 360 entrenado con documentos específicos. ¿En qué puedo ayudarte hoy?",
 			timestamp: new Date(),
 		},
 	]);
@@ -27,7 +32,6 @@ export default function BamChatbot() {
 		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
 	};
 
-	// Iconos SVG
 	const ArrowLeftIcon = () => (
 		<svg
 			width="20"
@@ -99,29 +103,15 @@ export default function BamChatbot() {
 		</svg>
 	);
 
-	// Sugerencias predefinidas
 	const suggestions = [
-		"Guía de Apertura de Cuenta",
-		"Preguntas frecuentes Bamapp",
-		"Quickstart Bamapp",
+		"¿Cómo abrir una cuenta?",
+		"¿Qué documentos necesito?",
+		"¿Cómo funciona el token?",
 	];
 
-	// Respuestas simuladas del bot
-	const botResponses = {
-		token:
-			"El procedimiento para habilitar el token por primera vez en Bamapp es:\n\n• Ingresar sesión con credenciales\n• Asignar medidas de seguridad\n• ...\n• Listo, el token debería estar habilitado.",
-		apertura:
-			"Para la apertura de cuenta necesitas completar los siguientes pasos:\n\n1. Verificación de identidad\n2. Documentación requerida\n3. Configuración inicial\n4. Activación del token",
-		bamapp:
-			"Bamapp es nuestra aplicación principal. ¿Necesitas ayuda con algún proceso específico como configuración, uso de funciones o resolución de problemas?",
-		default:
-			"Entiendo tu consulta. Te recomiendo revisar nuestras guías disponibles o contactar al soporte técnico para una asistencia más personalizada.",
-	};
-
-	const handleSendMessage = () => {
+	const handleSendMessage = async () => {
 		if (!inputMessage.trim()) return;
 
-		// Agregar mensaje del usuario
 		const userMessage = {
 			id: messages.length + 1,
 			type: "user",
@@ -130,36 +120,51 @@ export default function BamChatbot() {
 		};
 
 		setMessages((prev) => [...prev, userMessage]);
+		const currentMessage = inputMessage;
 		setInputMessage("");
 		setIsTyping(true);
 
-		// Simular respuesta del bot
-		setTimeout(() => {
-			let botResponse = botResponses.default;
+		try {
+			const response = await fetch(`${API_BASE_URL}/chat`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({ message: currentMessage }),
+			});
 
-			// Detectar palabras clave para respuestas específicas
-			const lowerInput = inputMessage.toLowerCase();
-			if (lowerInput.includes("token")) {
-				botResponse = botResponses.token;
-			} else if (
-				lowerInput.includes("apertura") ||
-				lowerInput.includes("cuenta")
-			) {
-				botResponse = botResponses.apertura;
-			} else if (lowerInput.includes("bamapp")) {
-				botResponse = botResponses.bamapp;
+			if (response.ok) {
+				const data = await response.json();
+				const botMessage = {
+					id: messages.length + 2,
+					type: "bot",
+					content: data.response,
+					timestamp: new Date(),
+				};
+				setMessages((prev) => [...prev, botMessage]);
+			} else {
+				const errorData = await response.json();
+				const errorMessage = {
+					id: messages.length + 2,
+					type: "bot",
+					content: `Lo siento, ocurrió un error: ${errorData.error}`,
+					timestamp: new Date(),
+				};
+				setMessages((prev) => [...prev, errorMessage]);
 			}
-
-			const botMessage = {
+		} catch (error) {
+			console.error("Error enviando mensaje:", error);
+			const errorMessage = {
 				id: messages.length + 2,
 				type: "bot",
-				content: botResponse,
+				content:
+					"Lo siento, no pude conectar con el servidor. Por favor, verifica que el backend esté funcionando.",
 				timestamp: new Date(),
 			};
-
-			setMessages((prev) => [...prev, botMessage]);
+			setMessages((prev) => [...prev, errorMessage]);
+		} finally {
 			setIsTyping(false);
-		}, 1500);
+		}
 	};
 
 	const handleSuggestionClick = (suggestion) => {
@@ -173,306 +178,80 @@ export default function BamChatbot() {
 		});
 	};
 
-	const baseStyles = {
-		container: {
-			minHeight: "100vh",
-			background:
-				"linear-gradient(135deg, #f8fafc 0%, #ffffff 50%, #eff6ff 100%)",
-			fontFamily: "Inter, -apple-system, BlinkMacSystemFont, sans-serif",
-		},
-		header: {
-			background: "rgba(255, 255, 255, 0.8)",
-			backdropFilter: "blur(20px)",
-			borderBottom: "1px solid rgba(229, 231, 235, 0.5)",
-			position: "sticky",
-			top: 0,
-			zIndex: 50,
-			padding: "16px 0",
-		},
-		headerContent: {
-			maxWidth: "1200px",
-			margin: "0 auto",
-			padding: "0 24px",
-			display: "flex",
-			justifyContent: "space-between",
-			alignItems: "center",
-		},
-		backButton: {
-			display: "flex",
-			alignItems: "center",
-			gap: "8px",
-			color: "#6b7280",
-			textDecoration: "none",
-			padding: "8px 16px",
-			borderRadius: "8px",
-			transition: "all 0.3s ease",
-			cursor: "pointer",
-			border: "none",
-			background: "transparent",
-		},
-		logo: {
-			display: "flex",
-			alignItems: "center",
-			gap: "12px",
-		},
-		logoIcon: {
-			width: "40px",
-			height: "40px",
-			background: "linear-gradient(135deg, #fbbf24, #f97316)",
-			borderRadius: "8px",
-			display: "flex",
-			alignItems: "center",
-			justifyContent: "center",
-		},
-		logoIconInner: {
-			width: "24px",
-			height: "24px",
-			background: "white",
-			borderRadius: "4px",
-			opacity: 0.9,
-		},
-		logoText: {
-			fontSize: "24px",
-			fontWeight: "700",
-			color: "#1f2937",
-		},
-		userInfo: {
-			display: "flex",
-			alignItems: "center",
-			gap: "12px",
-		},
-		userAvatar: {
-			width: "40px",
-			height: "40px",
-			borderRadius: "50%",
-			background: "linear-gradient(135deg, #60a5fa, #a855f7)",
-			display: "flex",
-			alignItems: "center",
-			justifyContent: "center",
-			color: "white",
-			fontWeight: "600",
-			fontSize: "14px",
-		},
-		chatHeader: {
-			background: "linear-gradient(135deg, #14b8a6, #73C18D)",
-			color: "white",
-			padding: "24px",
-			textAlign: "center",
-			animation: isVisible ? "fadeInDown 0.8s ease-out" : "none",
-		},
-		chatTitle: {
-			fontSize: "32px",
-			fontWeight: "700",
-			marginBottom: "8px",
-		},
-		chatSubtitle: {
-			fontSize: "16px",
-			opacity: 0.9,
-		},
-		mainContent: {
-			maxWidth: "1200px",
-			margin: "0 auto",
-			padding: "32px 24px",
-			display: "grid",
-			gridTemplateColumns: "1fr 300px",
-			gap: "32px",
-			minHeight: "calc(100vh - 200px)",
-		},
-		chatContainer: {
-			background: "white",
-			borderRadius: "16px",
-			boxShadow: "0 10px 25px rgba(0, 0, 0, 0.1)",
-			display: "flex",
-			flexDirection: "column",
-			height: "600px",
-			animation: isVisible ? "fadeInUp 0.8s ease-out 0.2s both" : "none",
-		},
-		messagesContainer: {
-			flex: 1,
-			padding: "24px",
-			overflowY: "auto",
-			display: "flex",
-			flexDirection: "column",
-			gap: "16px",
-		},
-		message: {
-			display: "flex",
-			gap: "12px",
-			maxWidth: "80%",
-		},
-		userMessage: {
-			alignSelf: "flex-end",
-			flexDirection: "row-reverse",
-		},
-		messageAvatar: {
-			width: "32px",
-			height: "32px",
-			borderRadius: "50%",
-			display: "flex",
-			alignItems: "center",
-			justifyContent: "center",
-			flexShrink: 0,
-		},
-		botAvatar: {
-			background: "linear-gradient(135deg, #14b8a6, #73C18D)",
-			color: "white",
-		},
-		userAvatarMsg: {
-			background: "linear-gradient(135deg, #60a5fa, #a855f7)",
-			color: "white",
-		},
-		messageContent: {
-			padding: "12px 16px",
-			borderRadius: "16px",
-			fontSize: "14px",
-			lineHeight: "1.5",
-		},
-		botMessage: {
-			background: "#f3f4f6",
-			color: "#1f2937",
-		},
-		userMessageContent: {
-			background: "linear-gradient(135deg, #3b82f6, #8b5cf6)",
-			color: "white",
-		},
-		messageTime: {
-			fontSize: "11px",
-			color: "#9ca3af",
-			marginTop: "4px",
-		},
-		typingIndicator: {
-			display: "flex",
-			gap: "12px",
-			maxWidth: "80%",
-		},
-		typingDots: {
-			display: "flex",
-			gap: "4px",
-			padding: "12px 16px",
-			background: "#f3f4f6",
-			borderRadius: "16px",
-		},
-		dot: {
-			width: "8px",
-			height: "8px",
-			borderRadius: "50%",
-			background: "#9ca3af",
-			animation: "bounce 1.4s infinite ease-in-out",
-		},
-		inputContainer: {
-			padding: "24px",
-			borderTop: "1px solid #e5e7eb",
-		},
-		inputWrapper: {
-			display: "flex",
-			gap: "12px",
-			alignItems: "flex-end",
-		},
-		messageInput: {
-			flex: 1,
-			padding: "12px 16px",
-			border: "2px solid #e5e7eb",
-			borderRadius: "12px",
-			fontSize: "14px",
-			outline: "none",
-			transition: "border-color 0.3s ease",
-			resize: "none",
-			minHeight: "44px",
-			maxHeight: "120px",
-		},
-		sendButton: {
-			background: "linear-gradient(135deg, #14b8a6, #0d9488)",
-			color: "white",
-			border: "none",
-			borderRadius: "12px",
-			padding: "12px",
-			cursor: "pointer",
-			transition: "all 0.3s ease",
-			display: "flex",
-			alignItems: "center",
-			justifyContent: "center",
-		},
-		sidebar: {
-			animation: isVisible ? "fadeInRight 0.8s ease-out 0.4s both" : "none",
-		},
-		sidebarSection: {
-			background: "white",
-			borderRadius: "16px",
-			padding: "24px",
-			boxShadow: "0 10px 25px rgba(0, 0, 0, 0.1)",
-		},
-		sidebarTitle: {
-			fontSize: "18px",
-			fontWeight: "600",
-			color: "#1f2937",
-			marginBottom: "16px",
-		},
-		suggestionItem: {
-			display: "flex",
-			alignItems: "center",
-			gap: "8px",
-			padding: "12px",
-			borderRadius: "8px",
-			cursor: "pointer",
-			transition: "all 0.3s ease",
-			fontSize: "14px",
-			color: "#4f46e5",
-			textDecoration: "none",
-			marginBottom: "8px",
-		},
-	};
-
 	const keyframes = `
-		@keyframes fadeInDown {
-			from {
-				opacity: 0;
-				transform: translateY(-30px);
-			}
-			to {
-				opacity: 1;
-				transform: translateY(0);
-			}
-		}
 		@keyframes fadeInUp {
-			from {
-				opacity: 0;
-				transform: translateY(30px);
-			}
-			to {
-				opacity: 1;
-				transform: translateY(0);
-			}
+			from { opacity: 0; transform: translateY(30px); }
+			to { opacity: 1; transform: translateY(0); }
+		}
+		@keyframes fadeInDown {
+			from { opacity: 0; transform: translateY(-30px); }
+			to { opacity: 1; transform: translateY(0); }
 		}
 		@keyframes fadeInRight {
-			from {
-				opacity: 0;
-				transform: translateX(30px);
-			}
-			to {
-				opacity: 1;
-				transform: translateX(0);
-			}
+			from { opacity: 0; transform: translateX(30px); }
+			to { opacity: 1; transform: translateX(0); }
+		}
+		@keyframes float {
+			0%, 100% { transform: translateY(0px) rotate(0deg); }
+			50% { transform: translateY(-20px) rotate(3deg); }
+		}
+		@keyframes floatReverse {
+			0%, 100% { transform: translateY(0px) rotate(0deg); }
+			50% { transform: translateY(-15px) rotate(-3deg); }
 		}
 		@keyframes bounce {
-			0%, 80%, 100% {
-				transform: scale(0);
-			}
-			40% {
-				transform: scale(1);
-			}
+			0%, 80%, 100% { transform: scale(0); }
+			40% { transform: scale(1); }
 		}
 	`;
 
 	return (
-		<div style={baseStyles.container}>
+		<div
+			style={{
+				minHeight: "100vh",
+				background: "#f9fafb",
+				fontFamily: "Inter, -apple-system, BlinkMacSystemFont, sans-serif",
+			}}
+		>
 			<style>{keyframes}</style>
 
 			{/* Header */}
-			<header style={baseStyles.header}>
-				<div style={baseStyles.headerContent}>
+			<header
+				style={{
+					background: "white",
+					borderBottom: "1px solid #e5e7eb",
+					position: "sticky",
+					top: 0,
+					zIndex: 50,
+					padding: "16px 0",
+					boxShadow: "0 1px 3px rgba(0, 0, 0, 0.05)",
+				}}
+			>
+				<div
+					style={{
+						maxWidth: "1200px",
+						margin: "0 auto",
+						padding: "0 24px",
+						display: "flex",
+						justifyContent: "space-between",
+						alignItems: "center",
+					}}
+				>
 					<div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
 						<button
-							style={baseStyles.backButton}
+							style={{
+								display: "flex",
+								alignItems: "center",
+								gap: "8px",
+								color: "#6b7280",
+								textDecoration: "none",
+								padding: "8px 16px",
+								borderRadius: "8px",
+								transition: "all 0.3s ease",
+								cursor: "pointer",
+								border: "none",
+								background: "transparent",
+							}}
 							onClick={() => window.history.back()}
 							onMouseEnter={(e) => {
 								e.target.style.background = "#f3f4f6";
@@ -487,50 +266,296 @@ export default function BamChatbot() {
 							<span>Volver</span>
 						</button>
 
-						<div style={baseStyles.logo}>
-							<div style={baseStyles.logoIcon}>
-								<div style={baseStyles.logoIconInner}></div>
-							</div>
-							<span style={baseStyles.logoText}>Bam</span>
-						</div>
-					</div>
-
-					<div style={baseStyles.userInfo}>
-						<div style={baseStyles.userAvatar}>MH</div>
-						<span style={{ color: "#6b7280" }}>Marta H.</span>
-					</div>
-				</div>
-			</header>
-
-			{/* Chat Header */}
-			<section style={baseStyles.chatHeader}>
-				<h1 style={baseStyles.chatTitle}>Chatbot Interno</h1>
-				<p style={baseStyles.chatSubtitle}>
-					Obtén respuestas instantáneas a tus preguntas con nuestro asistente
-					inteligente
-				</p>
-			</section>
-
-			{/* Main Content */}
-			<div style={baseStyles.mainContent}>
-				{/* Chat Container */}
-				<div style={baseStyles.chatContainer}>
-					{/* Messages */}
-					<div style={baseStyles.messagesContainer}>
-						{messages.map((message) => (
+						<div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
 							<div
-								key={message.id}
 								style={{
-									...baseStyles.message,
-									...(message.type === "user" ? baseStyles.userMessage : {}),
+									width: "40px",
+									height: "40px",
+									background: "linear-gradient(135deg, #fbbf24, #f97316)",
+									borderRadius: "8px",
+									display: "flex",
+									alignItems: "center",
+									justifyContent: "center",
 								}}
 							>
 								<div
 									style={{
-										...baseStyles.messageAvatar,
+										width: "24px",
+										height: "24px",
+										background: "white",
+										borderRadius: "4px",
+										opacity: 0.9,
+									}}
+								></div>
+							</div>
+							<span
+								style={{
+									fontSize: "24px",
+									fontWeight: "700",
+									color: "#1f2937",
+								}}
+							>
+								Bam
+							</span>
+						</div>
+					</div>
+
+					<div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+						<div
+							style={{
+								width: "40px",
+								height: "40px",
+								borderRadius: "50%",
+								background: "linear-gradient(135deg, #60a5fa, #a855f7)",
+								display: "flex",
+								alignItems: "center",
+								justifyContent: "center",
+								color: "white",
+								fontWeight: "600",
+								fontSize: "14px",
+							}}
+						>
+							A
+						</div>
+						<span style={{ color: "#6b7280" }}>Adriana</span>
+					</div>
+				</div>
+			</header>
+
+			{/* Hero Section */}
+			<section
+				style={{
+					background: "white",
+					position: "relative",
+					overflow: "hidden",
+					padding: "60px 24px 50px 24px",
+					boxShadow: "0 4px 20px rgba(0, 0, 0, 0.06)",
+				}}
+			>
+				{/* Líneas decorativas verdes/turquesa - arriba izquierda */}
+				<div
+					style={{
+						position: "absolute",
+						top: "30px",
+						left: "6%",
+						width: "240px",
+						height: "12px",
+						background: "linear-gradient(90deg, #6ee7b7 0%, #34d399 100%)",
+						borderRadius: "20px",
+						transform: "rotate(-8deg)",
+						animation: "float 6s ease-in-out infinite",
+					}}
+				></div>
+				<div
+					style={{
+						position: "absolute",
+						top: "60px",
+						left: "4%",
+						width: "200px",
+						height: "10px",
+						background: "linear-gradient(90deg, #5eead4 0%, #2dd4bf 100%)",
+						borderRadius: "20px",
+						transform: "rotate(-10deg)",
+						animation: "float 7s ease-in-out infinite 0.5s",
+					}}
+				></div>
+				<div
+					style={{
+						position: "absolute",
+						top: "95px",
+						left: "8%",
+						width: "160px",
+						height: "8px",
+						background: "linear-gradient(90deg, #14b8a6 0%, #0d9488 100%)",
+						borderRadius: "20px",
+						transform: "rotate(-6deg)",
+						animation: "float 8s ease-in-out infinite 1s",
+					}}
+				></div>
+
+				{/* Líneas decorativas verdes/turquesa - abajo derecha */}
+				<div
+					style={{
+						position: "absolute",
+						bottom: "40px",
+						right: "6%",
+						width: "220px",
+						height: "12px",
+						background: "linear-gradient(90deg, #a7f3d0 0%, #6ee7b7 100%)",
+						borderRadius: "20px",
+						transform: "rotate(10deg)",
+						animation: "floatReverse 6s ease-in-out infinite",
+					}}
+				></div>
+				<div
+					style={{
+						position: "absolute",
+						bottom: "70px",
+						right: "8%",
+						width: "180px",
+						height: "10px",
+						background: "linear-gradient(90deg, #99f6e4 0%, #5eead4 100%)",
+						borderRadius: "20px",
+						transform: "rotate(8deg)",
+						animation: "floatReverse 7s ease-in-out infinite 0.5s",
+					}}
+				></div>
+				<div
+					style={{
+						position: "absolute",
+						bottom: "105px",
+						right: "4%",
+						width: "150px",
+						height: "8px",
+						background: "linear-gradient(90deg, #34d399 0%, #10b981 100%)",
+						borderRadius: "20px",
+						transform: "rotate(12deg)",
+						animation: "floatReverse 8s ease-in-out infinite 1s",
+					}}
+				></div>
+
+				{/* Círculos decorativos verdes */}
+				<div
+					style={{
+						position: "absolute",
+						top: "50%",
+						left: "2%",
+						width: "110px",
+						height: "110px",
+						background: "rgba(20, 184, 166, 0.08)",
+						borderRadius: "50%",
+						animation: "float 10s ease-in-out infinite",
+					}}
+				></div>
+				<div
+					style={{
+						position: "absolute",
+						top: "40%",
+						right: "3%",
+						width: "90px",
+						height: "90px",
+						background: "rgba(16, 185, 129, 0.08)",
+						borderRadius: "50%",
+						animation: "floatReverse 9s ease-in-out infinite",
+					}}
+				></div>
+
+				<div
+					style={{
+						maxWidth: "1200px",
+						margin: "0 auto",
+						position: "relative",
+						zIndex: 10,
+						textAlign: "center",
+					}}
+				>
+					<h1
+						style={{
+							fontSize: "56px",
+							fontWeight: "800",
+							color: "#1f2937",
+							marginBottom: "16px",
+							letterSpacing: "-0.02em",
+							animation: isVisible ? "fadeInUp 1s ease-out" : "none",
+						}}
+					>
+						Chatbot{" "}
+						<span
+							style={{
+								background:
+									"linear-gradient(135deg, #14b8a6 0%, #10b981 50%, #34d399 100%)",
+								WebkitBackgroundClip: "text",
+								WebkitTextFillColor: "transparent",
+								backgroundClip: "text",
+							}}
+						>
+							Interno
+						</span>
+					</h1>
+
+					<p
+						style={{
+							fontSize: "20px",
+							color: "#4b5563",
+							maxWidth: "700px",
+							margin: "0 auto",
+							lineHeight: "1.6",
+							animation: isVisible ? "fadeInUp 1s ease-out 0.2s both" : "none",
+						}}
+					>
+						Obtén respuestas instantáneas a tus preguntas con nuestro asistente
+						inteligente
+					</p>
+				</div>
+			</section>
+
+			{/* Main Content */}
+			<div
+				style={{
+					maxWidth: "1200px",
+					margin: "0 auto",
+					padding: "32px 24px",
+					display: "grid",
+					gridTemplateColumns: "1fr 300px",
+					gap: "32px",
+					minHeight: "calc(100vh - 200px)",
+				}}
+			>
+				{/* Chat Container */}
+				<div
+					style={{
+						background: "white",
+						borderRadius: "16px",
+						boxShadow: "0 10px 25px rgba(0, 0, 0, 0.1)",
+						display: "flex",
+						flexDirection: "column",
+						height: "600px",
+						animation: isVisible ? "fadeInUp 0.8s ease-out 0.2s both" : "none",
+					}}
+				>
+					{/* Messages */}
+					<div
+						style={{
+							flex: 1,
+							padding: "24px",
+							overflowY: "auto",
+							display: "flex",
+							flexDirection: "column",
+							gap: "16px",
+						}}
+					>
+						{messages.map((message) => (
+							<div
+								key={message.id}
+								style={{
+									display: "flex",
+									gap: "12px",
+									maxWidth: "80%",
+									...(message.type === "user"
+										? { alignSelf: "flex-end", flexDirection: "row-reverse" }
+										: {}),
+								}}
+							>
+								<div
+									style={{
+										width: "32px",
+										height: "32px",
+										borderRadius: "50%",
+										display: "flex",
+										alignItems: "center",
+										justifyContent: "center",
+										flexShrink: 0,
 										...(message.type === "bot"
-											? baseStyles.botAvatar
-											: baseStyles.userAvatarMsg),
+											? {
+													background:
+														"linear-gradient(135deg, #14b8a6, #10b981)",
+													color: "white",
+											  }
+											: {
+													background:
+														"linear-gradient(135deg, #60a5fa, #a855f7)",
+													color: "white",
+											  }),
 									}}
 								>
 									{message.type === "bot" ? <BotIcon /> : <UserIcon />}
@@ -538,17 +563,30 @@ export default function BamChatbot() {
 								<div>
 									<div
 										style={{
-											...baseStyles.messageContent,
+											padding: "12px 16px",
+											borderRadius: "16px",
+											fontSize: "14px",
+											lineHeight: "1.5",
 											...(message.type === "bot"
-												? baseStyles.botMessage
-												: baseStyles.userMessageContent),
+												? { background: "#f3f4f6", color: "#1f2937" }
+												: {
+														background:
+															"linear-gradient(135deg, #3b82f6, #8b5cf6)",
+														color: "white",
+												  }),
 										}}
 									>
 										{message.content.split("\n").map((line, index) => (
 											<div key={index}>{line}</div>
 										))}
 									</div>
-									<div style={baseStyles.messageTime}>
+									<div
+										style={{
+											fontSize: "11px",
+											color: "#9ca3af",
+											marginTop: "4px",
+										}}
+									>
 										{formatTime(message.timestamp)}
 									</div>
 								</div>
@@ -557,19 +595,59 @@ export default function BamChatbot() {
 
 						{/* Typing Indicator */}
 						{isTyping && (
-							<div style={baseStyles.typingIndicator}>
-								<div style={baseStyles.botAvatar}>
+							<div style={{ display: "flex", gap: "12px", maxWidth: "80%" }}>
+								<div
+									style={{
+										width: "32px",
+										height: "32px",
+										borderRadius: "50%",
+										display: "flex",
+										alignItems: "center",
+										justifyContent: "center",
+										background: "linear-gradient(135deg, #14b8a6, #10b981)",
+										color: "white",
+									}}
+								>
 									<BotIcon />
 								</div>
-								<div style={baseStyles.typingDots}>
+								<div
+									style={{
+										display: "flex",
+										gap: "4px",
+										padding: "12px 16px",
+										background: "#f3f4f6",
+										borderRadius: "16px",
+									}}
+								>
 									<div
-										style={{ ...baseStyles.dot, animationDelay: "0s" }}
+										style={{
+											width: "8px",
+											height: "8px",
+											borderRadius: "50%",
+											background: "#9ca3af",
+											animation: "bounce 1.4s infinite ease-in-out",
+											animationDelay: "0s",
+										}}
 									></div>
 									<div
-										style={{ ...baseStyles.dot, animationDelay: "0.2s" }}
+										style={{
+											width: "8px",
+											height: "8px",
+											borderRadius: "50%",
+											background: "#9ca3af",
+											animation: "bounce 1.4s infinite ease-in-out",
+											animationDelay: "0.2s",
+										}}
 									></div>
 									<div
-										style={{ ...baseStyles.dot, animationDelay: "0.4s" }}
+										style={{
+											width: "8px",
+											height: "8px",
+											borderRadius: "50%",
+											background: "#9ca3af",
+											animation: "bounce 1.4s infinite ease-in-out",
+											animationDelay: "0.4s",
+										}}
 									></div>
 								</div>
 							</div>
@@ -578,12 +656,24 @@ export default function BamChatbot() {
 					</div>
 
 					{/* Input */}
-					<div style={baseStyles.inputContainer}>
-						<div style={baseStyles.inputWrapper}>
+					<div style={{ padding: "24px", borderTop: "1px solid #e5e7eb" }}>
+						<div
+							style={{ display: "flex", gap: "12px", alignItems: "flex-end" }}
+						>
 							<textarea
 								style={{
-									...baseStyles.messageInput,
-									borderColor: inputMessage ? "#14b8a6" : "#e5e7eb",
+									flex: 1,
+									padding: "12px 16px",
+									border: inputMessage
+										? "2px solid #14b8a6"
+										: "2px solid #e5e7eb",
+									borderRadius: "12px",
+									fontSize: "14px",
+									outline: "none",
+									transition: "border-color 0.3s ease",
+									resize: "none",
+									minHeight: "44px",
+									maxHeight: "120px",
 								}}
 								placeholder="Escribe tu consulta aquí..."
 								value={inputMessage}
@@ -597,9 +687,17 @@ export default function BamChatbot() {
 							/>
 							<button
 								style={{
-									...baseStyles.sendButton,
+									background: "linear-gradient(135deg, #14b8a6, #0d9488)",
+									color: "white",
+									border: "none",
+									borderRadius: "12px",
+									padding: "12px",
+									cursor: "pointer",
+									transition: "all 0.3s ease",
+									display: "flex",
+									alignItems: "center",
+									justifyContent: "center",
 									opacity: inputMessage.trim() ? 1 : 0.5,
-									transform: "scale(1)",
 								}}
 								onClick={handleSendMessage}
 								disabled={!inputMessage.trim()}
@@ -619,16 +717,50 @@ export default function BamChatbot() {
 				</div>
 
 				{/* Sidebar */}
-				<div style={baseStyles.sidebar}>
-					<div style={baseStyles.sidebarSection}>
-						<h3 style={baseStyles.sidebarTitle}>Recursos sugeridos</h3>
+				<div
+					style={{
+						animation: isVisible
+							? "fadeInRight 0.8s ease-out 0.4s both"
+							: "none",
+					}}
+				>
+					<div
+						style={{
+							background: "white",
+							borderRadius: "16px",
+							padding: "24px",
+							boxShadow: "0 10px 25px rgba(0, 0, 0, 0.1)",
+						}}
+					>
+						<h3
+							style={{
+								fontSize: "18px",
+								fontWeight: "600",
+								color: "#1f2937",
+								marginBottom: "16px",
+							}}
+						>
+							Recursos sugeridos
+						</h3>
 						{suggestions.map((suggestion, index) => (
 							<div
 								key={index}
-								style={baseStyles.suggestionItem}
+								style={{
+									display: "flex",
+									alignItems: "center",
+									gap: "8px",
+									padding: "12px",
+									borderRadius: "8px",
+									cursor: "pointer",
+									transition: "all 0.3s ease",
+									fontSize: "14px",
+									color: "#14b8a6",
+									marginBottom: "8px",
+									fontWeight: "500",
+								}}
 								onClick={() => handleSuggestionClick(suggestion)}
 								onMouseEnter={(e) => {
-									e.target.style.background = "#eff6ff";
+									e.target.style.background = "#ecfdf5";
 									e.target.style.transform = "translateX(4px)";
 								}}
 								onMouseLeave={(e) => {
@@ -640,6 +772,37 @@ export default function BamChatbot() {
 								<span>{suggestion}</span>
 							</div>
 						))}
+
+						<div
+							style={{
+								background: "linear-gradient(135deg, #ecfdf5, #d1fae5)",
+								border: "1px solid #a7f3d0",
+								borderRadius: "8px",
+								padding: "16px",
+								marginTop: "24px",
+								textAlign: "center",
+							}}
+						>
+							<div
+								style={{
+									fontSize: "14px",
+									fontWeight: "600",
+									color: "#065f46",
+									marginBottom: "4px",
+								}}
+							>
+								💬 Estado del Bot
+							</div>
+							<div
+								style={{
+									fontSize: "20px",
+									fontWeight: "700",
+									color: "#047857",
+								}}
+							>
+								En línea
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>

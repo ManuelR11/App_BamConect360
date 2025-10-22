@@ -9,7 +9,6 @@ export default function BamSoporteInterno() {
 		setIsVisible(true);
 	}, []);
 
-	// Iconos SVG
 	const ArrowLeftIcon = () => (
 		<svg
 			width="20"
@@ -119,7 +118,6 @@ export default function BamSoporteInterno() {
 		</svg>
 	);
 
-	// Miembros del equipo de soporte (simulados)
 	const supportTeam = [
 		{
 			id: 1,
@@ -127,7 +125,7 @@ export default function BamSoporteInterno() {
 			role: "Soporte Técnico Sr.",
 			status: "online",
 			avatar: "CR",
-			color: "linear-gradient(135deg, #10b981, #059669)",
+			color: "linear-gradient(135deg, #8b5cf6, #7c3aed)",
 		},
 		{
 			id: 2,
@@ -135,7 +133,7 @@ export default function BamSoporteInterno() {
 			role: "Especialista en Bamapp",
 			status: "online",
 			avatar: "AM",
-			color: "linear-gradient(135deg, #8b5cf6, #7c3aed)",
+			color: "linear-gradient(135deg, #a855f7, #9333ea)",
 		},
 		{
 			id: 3,
@@ -143,7 +141,7 @@ export default function BamSoporteInterno() {
 			role: "Soporte de Cuentas",
 			status: "busy",
 			avatar: "LG",
-			color: "linear-gradient(135deg, #f59e0b, #d97706)",
+			color: "linear-gradient(135deg, #c084fc, #a855f7)",
 		},
 		{
 			id: 4,
@@ -151,11 +149,10 @@ export default function BamSoporteInterno() {
 			role: "Coordinadora de Soporte",
 			status: "online",
 			avatar: "MS",
-			color: "linear-gradient(135deg, #ef4444, #dc2626)",
+			color: "linear-gradient(135deg, #7c3aed, #6d28d9)",
 		},
 	];
 
-	// Mensajes recientes del chat grupal (simulados)
 	const recentMessages = [
 		{
 			id: 1,
@@ -180,384 +177,80 @@ export default function BamSoporteInterno() {
 		},
 	];
 
-	const baseStyles = {
-		container: {
-			minHeight: "100vh",
-			background:
-				"linear-gradient(135deg, #f8fafc 0%, #ffffff 50%, #eff6ff 100%)",
-			fontFamily: "Inter, -apple-system, BlinkMacSystemFont, sans-serif",
-		},
-		header: {
-			background: "rgba(255, 255, 255, 0.8)",
-			backdropFilter: "blur(20px)",
-			borderBottom: "1px solid rgba(229, 231, 235, 0.5)",
-			position: "sticky",
-			top: 0,
-			zIndex: 50,
-			padding: "16px 0",
-		},
-		headerContent: {
-			maxWidth: "1200px",
-			margin: "0 auto",
-			padding: "0 24px",
-			display: "flex",
-			justifyContent: "space-between",
-			alignItems: "center",
-		},
-		backButton: {
-			display: "flex",
-			alignItems: "center",
-			gap: "8px",
-			color: "#6b7280",
-			textDecoration: "none",
-			padding: "8px 16px",
-			borderRadius: "8px",
-			transition: "all 0.3s ease",
-			cursor: "pointer",
-			border: "none",
-			background: "transparent",
-		},
-		logo: {
-			display: "flex",
-			alignItems: "center",
-			gap: "12px",
-		},
-		logoIcon: {
-			width: "40px",
-			height: "40px",
-			background: "linear-gradient(135deg, #fbbf24, #f97316)",
-			borderRadius: "8px",
-			display: "flex",
-			alignItems: "center",
-			justifyContent: "center",
-		},
-		logoIconInner: {
-			width: "24px",
-			height: "24px",
-			background: "white",
-			borderRadius: "4px",
-			opacity: 0.9,
-		},
-		logoText: {
-			fontSize: "24px",
-			fontWeight: "700",
-			color: "#1f2937",
-		},
-		userInfo: {
-			display: "flex",
-			alignItems: "center",
-			gap: "12px",
-		},
-		userAvatar: {
-			width: "40px",
-			height: "40px",
-			borderRadius: "50%",
-			background: "linear-gradient(135deg, #60a5fa, #a855f7)",
-			display: "flex",
-			alignItems: "center",
-			justifyContent: "center",
-			color: "white",
-			fontWeight: "600",
-			fontSize: "14px",
-		},
-		hero: {
-			background: "linear-gradient(135deg, #8b5cf6, #8567C7)",
-			color: "white",
-			padding: "64px 24px",
-			textAlign: "center",
-			position: "relative",
-			overflow: "hidden",
-			animation: isVisible ? "fadeInDown 0.8s ease-out" : "none",
-		},
-		heroContent: {
-			maxWidth: "1200px",
-			margin: "0 auto",
-			position: "relative",
-			zIndex: 10,
-		},
-		heroTitle: {
-			fontSize: "48px",
-			fontWeight: "700",
-			marginBottom: "16px",
-			letterSpacing: "-0.02em",
-		},
-		heroSubtitle: {
-			fontSize: "20px",
-			opacity: 0.9,
-			marginBottom: "32px",
-			maxWidth: "600px",
-			margin: "0 auto",
-		},
-		heroStats: {
-			display: "flex",
-			justifyContent: "center",
-			gap: "48px",
-			marginTop: "32px",
-		},
-		statItem: {
-			display: "flex",
-			alignItems: "center",
-			gap: "8px",
-			background: "rgba(255, 255, 255, 0.1)",
-			backdropFilter: "blur(10px)",
-			padding: "12px 20px",
-			borderRadius: "50px",
-		},
-		mainContent: {
-			maxWidth: "1200px",
-			margin: "0 auto",
-			padding: "64px 24px",
-		},
-		tabContainer: {
-			display: "flex",
-			background: "white",
-			borderRadius: "16px",
-			padding: "8px",
-			boxShadow: "0 10px 25px rgba(0, 0, 0, 0.1)",
-			marginBottom: "32px",
-			animation: isVisible ? "fadeInUp 0.8s ease-out 0.2s both" : "none",
-		},
-		tab: {
-			flex: 1,
-			padding: "16px 24px",
-			textAlign: "center",
-			borderRadius: "12px",
-			cursor: "pointer",
-			transition: "all 0.3s ease",
-			display: "flex",
-			alignItems: "center",
-			justifyContent: "center",
-			gap: "8px",
-			fontWeight: "600",
-		},
-		activeTab: {
-			background: "linear-gradient(135deg, #8b5cf6, #7c3aed)",
-			color: "white",
-			boxShadow: "0 4px 12px rgba(139, 92, 246, 0.3)",
-		},
-		inactiveTab: {
-			color: "#6b7280",
-		},
-		contentContainer: {
-			display: "grid",
-			gridTemplateColumns: "2fr 1fr",
-			gap: "32px",
-		},
-		mainCard: {
-			background: "white",
-			borderRadius: "16px",
-			padding: "32px",
-			boxShadow: "0 10px 25px rgba(0, 0, 0, 0.1)",
-			animation: isVisible ? "fadeInUp 0.8s ease-out 0.4s both" : "none",
-		},
-		sideCard: {
-			background: "white",
-			borderRadius: "16px",
-			padding: "24px",
-			boxShadow: "0 10px 25px rgba(0, 0, 0, 0.1)",
-			animation: isVisible ? "fadeInRight 0.8s ease-out 0.6s both" : "none",
-		},
-		cardTitle: {
-			fontSize: "24px",
-			fontWeight: "700",
-			color: "#1f2937",
-			marginBottom: "16px",
-		},
-		cardSubtitle: {
-			color: "#6b7280",
-			marginBottom: "24px",
-			lineHeight: "1.6",
-		},
-		phoneNumber: {
-			fontSize: "36px",
-			fontWeight: "700",
-			color: "#8b5cf6",
-			textAlign: "center",
-			marginBottom: "24px",
-			letterSpacing: "0.1em",
-		},
-		callButton: {
-			width: "100%",
-			background: "linear-gradient(135deg, #10b981, #059669)",
-			color: "white",
-			border: "none",
-			padding: "16px 24px",
-			borderRadius: "12px",
-			fontSize: "16px",
-			fontWeight: "600",
-			cursor: "pointer",
-			display: "flex",
-			alignItems: "center",
-			justifyContent: "center",
-			gap: "8px",
-			transition: "all 0.3s ease",
-			marginBottom: "16px",
-		},
-		scheduleInfo: {
-			background: "#f0f9f4",
-			border: "1px solid #d1fae5",
-			borderRadius: "8px",
-			padding: "16px",
-			marginBottom: "24px",
-		},
-		scheduleTitle: {
-			fontSize: "14px",
-			fontWeight: "600",
-			color: "#065f46",
-			marginBottom: "8px",
-			display: "flex",
-			alignItems: "center",
-			gap: "6px",
-		},
-		scheduleText: {
-			fontSize: "14px",
-			color: "#047857",
-			lineHeight: "1.5",
-		},
-		teamMember: {
-			display: "flex",
-			alignItems: "center",
-			gap: "12px",
-			padding: "12px",
-			borderRadius: "8px",
-			marginBottom: "8px",
-			transition: "all 0.3s ease",
-			cursor: "pointer",
-		},
-		memberAvatar: {
-			width: "40px",
-			height: "40px",
-			borderRadius: "50%",
-			display: "flex",
-			alignItems: "center",
-			justifyContent: "center",
-			color: "white",
-			fontWeight: "600",
-			fontSize: "14px",
-		},
-		memberInfo: {
-			flex: 1,
-		},
-		memberName: {
-			fontSize: "14px",
-			fontWeight: "600",
-			color: "#1f2937",
-		},
-		memberRole: {
-			fontSize: "12px",
-			color: "#6b7280",
-		},
-		statusIndicator: {
-			width: "8px",
-			height: "8px",
-			borderRadius: "50%",
-			marginLeft: "auto",
-		},
-		onlineStatus: {
-			background: "#10b981",
-		},
-		busyStatus: {
-			background: "#f59e0b",
-		},
-		chatMessage: {
-			padding: "12px",
-			borderRadius: "8px",
-			marginBottom: "12px",
-			background: "#f9fafb",
-			border: "1px solid #f3f4f6",
-		},
-		messageHeader: {
-			display: "flex",
-			alignItems: "center",
-			justifyContent: "space-between",
-			marginBottom: "4px",
-		},
-		messageAuthor: {
-			fontSize: "12px",
-			fontWeight: "600",
-			color: "#4f46e5",
-		},
-		messageTime: {
-			fontSize: "11px",
-			color: "#9ca3af",
-		},
-		messageText: {
-			fontSize: "14px",
-			color: "#374151",
-			lineHeight: "1.4",
-		},
-		joinChatButton: {
-			width: "100%",
-			background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
-			color: "white",
-			border: "none",
-			padding: "16px 24px",
-			borderRadius: "12px",
-			fontSize: "16px",
-			fontWeight: "600",
-			cursor: "pointer",
-			display: "flex",
-			alignItems: "center",
-			justifyContent: "center",
-			gap: "8px",
-			transition: "all 0.3s ease",
-			marginTop: "16px",
-		},
-	};
-
 	const keyframes = `
-		@keyframes fadeInDown {
-			from {
-				opacity: 0;
-				transform: translateY(-30px);
-			}
-			to {
-				opacity: 1;
-				transform: translateY(0);
-			}
-		}
 		@keyframes fadeInUp {
-			from {
-				opacity: 0;
-				transform: translateY(30px);
-			}
-			to {
-				opacity: 1;
-				transform: translateY(0);
-			}
+			from { opacity: 0; transform: translateY(30px); }
+			to { opacity: 1; transform: translateY(0); }
+		}
+		@keyframes fadeInDown {
+			from { opacity: 0; transform: translateY(-30px); }
+			to { opacity: 1; transform: translateY(0); }
 		}
 		@keyframes fadeInRight {
-			from {
-				opacity: 0;
-				transform: translateX(30px);
-			}
-			to {
-				opacity: 1;
-				transform: translateX(0);
-			}
+			from { opacity: 0; transform: translateX(30px); }
+			to { opacity: 1; transform: translateX(0); }
+		}
+		@keyframes float {
+			0%, 100% { transform: translateY(0px) rotate(0deg); }
+			50% { transform: translateY(-20px) rotate(3deg); }
+		}
+		@keyframes floatReverse {
+			0%, 100% { transform: translateY(0px) rotate(0deg); }
+			50% { transform: translateY(-15px) rotate(-3deg); }
 		}
 		@keyframes pulse {
-			0%, 100% {
-				opacity: 0.6;
-				transform: scale(1);
-			}
-			50% {
-				opacity: 1;
-				transform: scale(1.05);
-			}
+			0%, 100% { opacity: 0.6; transform: scale(1); }
+			50% { opacity: 1; transform: scale(1.05); }
 		}
 	`;
 
 	return (
-		<div style={baseStyles.container}>
+		<div
+			style={{
+				minHeight: "100vh",
+				background: "#f9fafb",
+				fontFamily: "Inter, -apple-system, BlinkMacSystemFont, sans-serif",
+			}}
+		>
 			<style>{keyframes}</style>
 
 			{/* Header */}
-			<header style={baseStyles.header}>
-				<div style={baseStyles.headerContent}>
+			<header
+				style={{
+					background: "white",
+					borderBottom: "1px solid #e5e7eb",
+					position: "sticky",
+					top: 0,
+					zIndex: 50,
+					padding: "16px 0",
+					boxShadow: "0 1px 3px rgba(0, 0, 0, 0.05)",
+				}}
+			>
+				<div
+					style={{
+						maxWidth: "1200px",
+						margin: "0 auto",
+						padding: "0 24px",
+						display: "flex",
+						justifyContent: "space-between",
+						alignItems: "center",
+					}}
+				>
 					<div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
 						<button
-							style={baseStyles.backButton}
+							style={{
+								display: "flex",
+								alignItems: "center",
+								gap: "8px",
+								color: "#6b7280",
+								textDecoration: "none",
+								padding: "8px 16px",
+								borderRadius: "8px",
+								transition: "all 0.3s ease",
+								cursor: "pointer",
+								border: "none",
+								background: "transparent",
+							}}
 							onClick={() => window.history.back()}
 							onMouseEnter={(e) => {
 								e.target.style.background = "#f3f4f6";
@@ -572,66 +265,292 @@ export default function BamSoporteInterno() {
 							<span>Volver</span>
 						</button>
 
-						<div style={baseStyles.logo}>
-							<div style={baseStyles.logoIcon}>
-								<div style={baseStyles.logoIconInner}></div>
+						<div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+							<div
+								style={{
+									width: "40px",
+									height: "40px",
+									background: "linear-gradient(135deg, #fbbf24, #f97316)",
+									borderRadius: "8px",
+									display: "flex",
+									alignItems: "center",
+									justifyContent: "center",
+								}}
+							>
+								<div
+									style={{
+										width: "24px",
+										height: "24px",
+										background: "white",
+										borderRadius: "4px",
+										opacity: 0.9,
+									}}
+								></div>
 							</div>
-							<span style={baseStyles.logoText}>Bam</span>
+							<span
+								style={{
+									fontSize: "24px",
+									fontWeight: "700",
+									color: "#1f2937",
+								}}
+							>
+								Bam
+							</span>
 						</div>
 					</div>
 
-					<div style={baseStyles.userInfo}>
-						<div style={baseStyles.userAvatar}>MH</div>
-						<span style={{ color: "#6b7280" }}>Marta H.</span>
+					<div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+						<div
+							style={{
+								width: "40px",
+								height: "40px",
+								borderRadius: "50%",
+								background: "linear-gradient(135deg, #60a5fa, #a855f7)",
+								display: "flex",
+								alignItems: "center",
+								justifyContent: "center",
+								color: "white",
+								fontWeight: "600",
+								fontSize: "14px",
+							}}
+						>
+							A
+						</div>
+						<span style={{ color: "#6b7280" }}>Adriana</span>
 					</div>
 				</div>
 			</header>
 
 			{/* Hero Section */}
-			<section style={baseStyles.hero}>
-				{/* Elementos decorativos */}
+			<section
+				style={{
+					background: "white",
+					position: "relative",
+					overflow: "hidden",
+					padding: "80px 24px 60px 24px",
+					boxShadow: "0 4px 20px rgba(0, 0, 0, 0.06)",
+				}}
+			>
+				{/* Líneas decorativas moradas - arriba izquierda */}
 				<div
 					style={{
 						position: "absolute",
 						top: "40px",
-						left: "80px",
-						width: "60px",
-						height: "60px",
-						background: "rgba(255, 255, 255, 0.1)",
-						borderRadius: "50%",
-						animation: "pulse 2s infinite",
+						left: "6%",
+						width: "240px",
+						height: "12px",
+						background: "linear-gradient(90deg, #c084fc 0%, #a855f7 100%)",
+						borderRadius: "20px",
+						transform: "rotate(-8deg)",
+						animation: "float 6s ease-in-out infinite",
 					}}
 				></div>
 				<div
 					style={{
 						position: "absolute",
-						bottom: "60px",
-						right: "120px",
-						width: "80px",
-						height: "80px",
-						background: "rgba(255, 255, 255, 0.1)",
-						borderRadius: "50%",
-						animation: "pulse 2s infinite 1s",
+						top: "75px",
+						left: "4%",
+						width: "200px",
+						height: "10px",
+						background: "linear-gradient(90deg, #a855f7 0%, #9333ea 100%)",
+						borderRadius: "20px",
+						transform: "rotate(-10deg)",
+						animation: "float 7s ease-in-out infinite 0.5s",
+					}}
+				></div>
+				<div
+					style={{
+						position: "absolute",
+						top: "115px",
+						left: "8%",
+						width: "160px",
+						height: "8px",
+						background: "linear-gradient(90deg, #8b5cf6 0%, #7c3aed 100%)",
+						borderRadius: "20px",
+						transform: "rotate(-6deg)",
+						animation: "float 8s ease-in-out infinite 1s",
 					}}
 				></div>
 
-				<div style={baseStyles.heroContent}>
-					<h1 style={baseStyles.heroTitle}>Soporte Interno</h1>
-					<p style={baseStyles.heroSubtitle}>
+				{/* Líneas decorativas moradas - abajo derecha */}
+				<div
+					style={{
+						position: "absolute",
+						bottom: "50px",
+						right: "6%",
+						width: "220px",
+						height: "12px",
+						background: "linear-gradient(90deg, #d8b4fe 0%, #c084fc 100%)",
+						borderRadius: "20px",
+						transform: "rotate(10deg)",
+						animation: "floatReverse 6s ease-in-out infinite",
+					}}
+				></div>
+				<div
+					style={{
+						position: "absolute",
+						bottom: "85px",
+						right: "8%",
+						width: "180px",
+						height: "10px",
+						background: "linear-gradient(90deg, #e9d5ff 0%, #d8b4fe 100%)",
+						borderRadius: "20px",
+						transform: "rotate(8deg)",
+						animation: "floatReverse 7s ease-in-out infinite 0.5s",
+					}}
+				></div>
+				<div
+					style={{
+						position: "absolute",
+						bottom: "125px",
+						right: "4%",
+						width: "150px",
+						height: "8px",
+						background: "linear-gradient(90deg, #c084fc 0%, #a855f7 100%)",
+						borderRadius: "20px",
+						transform: "rotate(12deg)",
+						animation: "floatReverse 8s ease-in-out infinite 1s",
+					}}
+				></div>
+
+				{/* Círculos decorativos morados */}
+				<div
+					style={{
+						position: "absolute",
+						top: "45%",
+						left: "2%",
+						width: "120px",
+						height: "120px",
+						background: "rgba(139, 92, 246, 0.08)",
+						borderRadius: "50%",
+						animation: "float 10s ease-in-out infinite",
+					}}
+				></div>
+				<div
+					style={{
+						position: "absolute",
+						top: "35%",
+						right: "3%",
+						width: "100px",
+						height: "100px",
+						background: "rgba(168, 85, 247, 0.08)",
+						borderRadius: "50%",
+						animation: "floatReverse 9s ease-in-out infinite",
+					}}
+				></div>
+				<div
+					style={{
+						position: "absolute",
+						bottom: "40%",
+						left: "50%",
+						width: "80px",
+						height: "80px",
+						background: "rgba(192, 132, 252, 0.06)",
+						borderRadius: "50%",
+						animation: "pulse 8s ease-in-out infinite",
+					}}
+				></div>
+
+				<div
+					style={{
+						maxWidth: "1200px",
+						margin: "0 auto",
+						position: "relative",
+						zIndex: 10,
+					}}
+				>
+					<h1
+						style={{
+							fontSize: "56px",
+							fontWeight: "800",
+							color: "#1f2937",
+							marginBottom: "16px",
+							letterSpacing: "-0.02em",
+							animation: isVisible ? "fadeInUp 1s ease-out" : "none",
+						}}
+					>
+						Soporte{" "}
+						<span
+							style={{
+								background:
+									"linear-gradient(135deg, #8b5cf6 0%, #a855f7 50%, #c084fc 100%)",
+								WebkitBackgroundClip: "text",
+								WebkitTextFillColor: "transparent",
+								backgroundClip: "text",
+							}}
+						>
+							Interno
+						</span>
+					</h1>
+
+					<p
+						style={{
+							fontSize: "20px",
+							color: "#4b5563",
+							marginBottom: "40px",
+							maxWidth: "700px",
+							lineHeight: "1.6",
+							animation: isVisible ? "fadeInUp 1s ease-out 0.2s both" : "none",
+						}}
+					>
 						Asistencia técnica especializada disponible las 24 horas del día
 						para resolver tus dudas
 					</p>
 
-					<div style={baseStyles.heroStats}>
-						<div style={baseStyles.statItem}>
+					<div
+						style={{
+							display: "flex",
+							justifyContent: "flex-start",
+							gap: "24px",
+							flexWrap: "wrap",
+							animation: isVisible ? "fadeInUp 1s ease-out 0.4s both" : "none",
+						}}
+					>
+						<div
+							style={{
+								display: "flex",
+								alignItems: "center",
+								gap: "8px",
+								background: "linear-gradient(135deg, #f3e8ff, #faf5ff)",
+								border: "1px solid #e9d5ff",
+								padding: "12px 20px",
+								borderRadius: "50px",
+								color: "#7c3aed",
+								fontWeight: "600",
+							}}
+						>
 							<ClockIcon />
 							<span>Disponible 24/7</span>
 						</div>
-						<div style={baseStyles.statItem}>
+						<div
+							style={{
+								display: "flex",
+								alignItems: "center",
+								gap: "8px",
+								background: "linear-gradient(135deg, #f3e8ff, #faf5ff)",
+								border: "1px solid #e9d5ff",
+								padding: "12px 20px",
+								borderRadius: "50px",
+								color: "#7c3aed",
+								fontWeight: "600",
+							}}
+						>
 							<UsersIcon />
 							<span>Equipo especializado</span>
 						</div>
-						<div style={baseStyles.statItem}>
+						<div
+							style={{
+								display: "flex",
+								alignItems: "center",
+								gap: "8px",
+								background: "linear-gradient(135deg, #f3e8ff, #faf5ff)",
+								border: "1px solid #e9d5ff",
+								padding: "12px 20px",
+								borderRadius: "50px",
+								color: "#7c3aed",
+								fontWeight: "600",
+							}}
+						>
 							<CheckCircleIcon />
 							<span>Respuesta inmediata</span>
 						</div>
@@ -640,15 +559,43 @@ export default function BamSoporteInterno() {
 			</section>
 
 			{/* Main Content */}
-			<div style={baseStyles.mainContent}>
+			<div
+				style={{ maxWidth: "1200px", margin: "0 auto", padding: "64px 24px" }}
+			>
 				{/* Tabs */}
-				<div style={baseStyles.tabContainer}>
+				<div
+					style={{
+						display: "flex",
+						background: "white",
+						borderRadius: "16px",
+						padding: "8px",
+						boxShadow: "0 10px 25px rgba(0, 0, 0, 0.1)",
+						marginBottom: "32px",
+						animation: isVisible ? "fadeInUp 0.8s ease-out 0.2s both" : "none",
+					}}
+				>
 					<div
 						style={{
-							...baseStyles.tab,
+							flex: 1,
+							padding: "16px 24px",
+							textAlign: "center",
+							borderRadius: "12px",
+							cursor: "pointer",
+							transition: "all 0.3s ease",
+							display: "flex",
+							alignItems: "center",
+							justifyContent: "center",
+							gap: "8px",
+							fontWeight: "600",
 							...(activeTab === "phone"
-								? baseStyles.activeTab
-								: baseStyles.inactiveTab),
+								? {
+										background: "linear-gradient(135deg, #8b5cf6, #7c3aed)",
+										color: "white",
+										boxShadow: "0 4px 12px rgba(139, 92, 246, 0.3)",
+								  }
+								: {
+										color: "#6b7280",
+								  }),
 						}}
 						onClick={() => setActiveTab("phone")}
 					>
@@ -657,10 +604,26 @@ export default function BamSoporteInterno() {
 					</div>
 					<div
 						style={{
-							...baseStyles.tab,
+							flex: 1,
+							padding: "16px 24px",
+							textAlign: "center",
+							borderRadius: "12px",
+							cursor: "pointer",
+							transition: "all 0.3s ease",
+							display: "flex",
+							alignItems: "center",
+							justifyContent: "center",
+							gap: "8px",
+							fontWeight: "600",
 							...(activeTab === "chat"
-								? baseStyles.activeTab
-								: baseStyles.inactiveTab),
+								? {
+										background: "linear-gradient(135deg, #8b5cf6, #7c3aed)",
+										color: "white",
+										boxShadow: "0 4px 12px rgba(139, 92, 246, 0.3)",
+								  }
+								: {
+										color: "#6b7280",
+								  }),
 						}}
 						onClick={() => setActiveTab("chat")}
 					>
@@ -670,38 +633,120 @@ export default function BamSoporteInterno() {
 				</div>
 
 				{/* Content */}
-				<div style={baseStyles.contentContainer}>
+				<div
+					style={{
+						display: "grid",
+						gridTemplateColumns: "2fr 1fr",
+						gap: "32px",
+					}}
+				>
 					{/* Main Content */}
-					<div style={baseStyles.mainCard}>
+					<div
+						style={{
+							background: "white",
+							borderRadius: "16px",
+							padding: "32px",
+							boxShadow: "0 10px 25px rgba(0, 0, 0, 0.1)",
+							animation: isVisible
+								? "fadeInUp 0.8s ease-out 0.4s both"
+								: "none",
+						}}
+					>
 						{activeTab === "phone" ? (
 							<div>
-								<h2 style={baseStyles.cardTitle}>Llamada Directa</h2>
-								<p style={baseStyles.cardSubtitle}>
+								<h2
+									style={{
+										fontSize: "24px",
+										fontWeight: "700",
+										color: "#1f2937",
+										marginBottom: "16px",
+									}}
+								>
+									Llamada Directa
+								</h2>
+								<p
+									style={{
+										color: "#6b7280",
+										marginBottom: "24px",
+										lineHeight: "1.6",
+									}}
+								>
 									Habla directamente con nuestro equipo de soporte técnico.
 									Estamos disponibles las 24 horas para resolver tus consultas
 									urgentes.
 								</p>
 
-								<div style={baseStyles.scheduleInfo}>
-									<div style={baseStyles.scheduleTitle}>
+								<div
+									style={{
+										background: "#faf5ff",
+										border: "1px solid #e9d5ff",
+										borderRadius: "8px",
+										padding: "16px",
+										marginBottom: "24px",
+									}}
+								>
+									<div
+										style={{
+											fontSize: "14px",
+											fontWeight: "600",
+											color: "#7c3aed",
+											marginBottom: "8px",
+											display: "flex",
+											alignItems: "center",
+											gap: "6px",
+										}}
+									>
 										<ClockIcon />
 										<span>Horarios de Atención</span>
 									</div>
-									<div style={baseStyles.scheduleText}>
+									<div
+										style={{
+											fontSize: "14px",
+											color: "#6d28d9",
+											lineHeight: "1.5",
+										}}
+									>
 										• <strong>Lunes a Viernes:</strong> 24 horas
 										<br />• <strong>Sábados y Domingos:</strong> 24 horas
 										<br />• <strong>Emergencias:</strong> Siempre disponible
 									</div>
 								</div>
 
-								<div style={baseStyles.phoneNumber}>+502 2XXX-XXXX</div>
+								<div
+									style={{
+										fontSize: "36px",
+										fontWeight: "700",
+										color: "#8b5cf6",
+										textAlign: "center",
+										marginBottom: "24px",
+										letterSpacing: "0.1em",
+									}}
+								>
+									+502 2XXX-XXXX
+								</div>
 
 								<button
-									style={baseStyles.callButton}
+									style={{
+										width: "100%",
+										background: "linear-gradient(135deg, #8b5cf6, #7c3aed)",
+										color: "white",
+										border: "none",
+										padding: "16px 24px",
+										borderRadius: "12px",
+										fontSize: "16px",
+										fontWeight: "600",
+										cursor: "pointer",
+										display: "flex",
+										alignItems: "center",
+										justifyContent: "center",
+										gap: "8px",
+										transition: "all 0.3s ease",
+										marginBottom: "16px",
+									}}
 									onMouseEnter={(e) => {
 										e.target.style.transform = "scale(1.02)";
 										e.target.style.boxShadow =
-											"0 8px 25px rgba(16, 185, 129, 0.3)";
+											"0 8px 25px rgba(139, 92, 246, 0.4)";
 									}}
 									onMouseLeave={(e) => {
 										e.target.style.transform = "scale(1)";
@@ -727,8 +772,23 @@ export default function BamSoporteInterno() {
 							</div>
 						) : (
 							<div>
-								<h2 style={baseStyles.cardTitle}>Chat Grupal de Soporte</h2>
-								<p style={baseStyles.cardSubtitle}>
+								<h2
+									style={{
+										fontSize: "24px",
+										fontWeight: "700",
+										color: "#1f2937",
+										marginBottom: "16px",
+									}}
+								>
+									Chat Grupal de Soporte
+								</h2>
+								<p
+									style={{
+										color: "#6b7280",
+										marginBottom: "24px",
+										lineHeight: "1.6",
+									}}
+								>
 									Únete a la conversación con el equipo de soporte y otros
 									compañeros. Comparte dudas, encuentra soluciones y mantente al
 									día con las últimas actualizaciones.
@@ -746,24 +806,72 @@ export default function BamSoporteInterno() {
 										Mensajes Recientes
 									</h4>
 									{recentMessages.map((msg) => (
-										<div key={msg.id} style={baseStyles.chatMessage}>
-											<div style={baseStyles.messageHeader}>
-												<span style={baseStyles.messageAuthor}>
+										<div
+											key={msg.id}
+											style={{
+												padding: "12px",
+												borderRadius: "8px",
+												marginBottom: "12px",
+												background: "#f9fafb",
+												border: "1px solid #f3f4f6",
+											}}
+										>
+											<div
+												style={{
+													display: "flex",
+													alignItems: "center",
+													justifyContent: "space-between",
+													marginBottom: "4px",
+												}}
+											>
+												<span
+													style={{
+														fontSize: "12px",
+														fontWeight: "600",
+														color: "#8b5cf6",
+													}}
+												>
 													{msg.author}
 												</span>
-												<span style={baseStyles.messageTime}>{msg.time}</span>
+												<span style={{ fontSize: "11px", color: "#9ca3af" }}>
+													{msg.time}
+												</span>
 											</div>
-											<div style={baseStyles.messageText}>{msg.message}</div>
+											<div
+												style={{
+													fontSize: "14px",
+													color: "#374151",
+													lineHeight: "1.4",
+												}}
+											>
+												{msg.message}
+											</div>
 										</div>
 									))}
 								</div>
 
 								<button
-									style={baseStyles.joinChatButton}
+									style={{
+										width: "100%",
+										background: "linear-gradient(135deg, #8b5cf6, #7c3aed)",
+										color: "white",
+										border: "none",
+										padding: "16px 24px",
+										borderRadius: "12px",
+										fontSize: "16px",
+										fontWeight: "600",
+										cursor: "pointer",
+										display: "flex",
+										alignItems: "center",
+										justifyContent: "center",
+										gap: "8px",
+										transition: "all 0.3s ease",
+										marginTop: "16px",
+									}}
 									onMouseEnter={(e) => {
 										e.target.style.transform = "scale(1.02)";
 										e.target.style.boxShadow =
-											"0 8px 25px rgba(59, 130, 246, 0.3)";
+											"0 8px 25px rgba(139, 92, 246, 0.4)";
 									}}
 									onMouseLeave={(e) => {
 										e.target.style.transform = "scale(1)";
@@ -789,7 +897,17 @@ export default function BamSoporteInterno() {
 					</div>
 
 					{/* Sidebar */}
-					<div style={baseStyles.sideCard}>
+					<div
+						style={{
+							background: "white",
+							borderRadius: "16px",
+							padding: "24px",
+							boxShadow: "0 10px 25px rgba(0, 0, 0, 0.1)",
+							animation: isVisible
+								? "fadeInRight 0.8s ease-out 0.6s both"
+								: "none",
+						}}
+					>
 						<h3
 							style={{
 								fontSize: "18px",
@@ -804,9 +922,18 @@ export default function BamSoporteInterno() {
 						{supportTeam.map((member) => (
 							<div
 								key={member.id}
-								style={baseStyles.teamMember}
+								style={{
+									display: "flex",
+									alignItems: "center",
+									gap: "12px",
+									padding: "12px",
+									borderRadius: "8px",
+									marginBottom: "8px",
+									transition: "all 0.3s ease",
+									cursor: "pointer",
+								}}
 								onMouseEnter={(e) => {
-									e.target.style.background = "#f9fafb";
+									e.target.style.background = "#faf5ff";
 									e.target.style.transform = "translateX(4px)";
 								}}
 								onMouseLeave={(e) => {
@@ -816,22 +943,42 @@ export default function BamSoporteInterno() {
 							>
 								<div
 									style={{
-										...baseStyles.memberAvatar,
+										width: "40px",
+										height: "40px",
+										borderRadius: "50%",
+										display: "flex",
+										alignItems: "center",
+										justifyContent: "center",
+										color: "white",
+										fontWeight: "600",
+										fontSize: "14px",
 										background: member.color,
 									}}
 								>
 									{member.avatar}
 								</div>
-								<div style={baseStyles.memberInfo}>
-									<div style={baseStyles.memberName}>{member.name}</div>
-									<div style={baseStyles.memberRole}>{member.role}</div>
+								<div style={{ flex: 1 }}>
+									<div
+										style={{
+											fontSize: "14px",
+											fontWeight: "600",
+											color: "#1f2937",
+										}}
+									>
+										{member.name}
+									</div>
+									<div style={{ fontSize: "12px", color: "#6b7280" }}>
+										{member.role}
+									</div>
 								</div>
 								<div
 									style={{
-										...baseStyles.statusIndicator,
-										...(member.status === "online"
-											? baseStyles.onlineStatus
-											: baseStyles.busyStatus),
+										width: "8px",
+										height: "8px",
+										borderRadius: "50%",
+										marginLeft: "auto",
+										background:
+											member.status === "online" ? "#10b981" : "#f59e0b",
 									}}
 								></div>
 							</div>
@@ -839,8 +986,8 @@ export default function BamSoporteInterno() {
 
 						<div
 							style={{
-								background: "#fef3c7",
-								border: "1px solid #fbbf24",
+								background: "linear-gradient(135deg, #faf5ff, #f3e8ff)",
+								border: "1px solid #e9d5ff",
 								borderRadius: "8px",
 								padding: "16px",
 								marginTop: "24px",
@@ -851,7 +998,7 @@ export default function BamSoporteInterno() {
 								style={{
 									fontSize: "14px",
 									fontWeight: "600",
-									color: "#92400e",
+									color: "#7c3aed",
 									marginBottom: "4px",
 								}}
 							>
@@ -861,7 +1008,7 @@ export default function BamSoporteInterno() {
 								style={{
 									fontSize: "20px",
 									fontWeight: "700",
-									color: "#78350f",
+									color: "#6d28d9",
 								}}
 							>
 								&lt; 2 minutos

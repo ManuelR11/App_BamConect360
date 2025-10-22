@@ -1,17 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 
 export default function GuiasProcedimientos() {
 	const [hoveredCard, setHoveredCard] = useState(null);
 	const [searchTerm, setSearchTerm] = useState("");
 	const [isVisible, setIsVisible] = useState(false);
-	const navigate = useNavigate();
 
 	useEffect(() => {
 		setIsVisible(true);
 	}, []);
 
-	// Iconos como componentes SVG
 	const PiggyBankIcon = () => (
 		<svg
 			width="48"
@@ -232,298 +229,343 @@ export default function GuiasProcedimientos() {
 			service.category.toLowerCase().includes(searchTerm.toLowerCase())
 	);
 
-	const baseStyles = {
-		container: {
-			minHeight: "100vh",
-			background:
-				"linear-gradient(135deg, #f8fafc 0%, #ffffff 50%, #eff6ff 100%)",
-			fontFamily: "Inter, -apple-system, BlinkMacSystemFont, sans-serif",
-		},
-		header: {
-			background: "rgba(255, 255, 255, 0.8)",
-			backdropFilter: "blur(20px)",
-			borderBottom: "1px solid rgba(229, 231, 235, 0.5)",
-			position: "sticky",
-			top: 0,
-			zIndex: 50,
-			padding: "16px 0",
-		},
-		headerContent: {
-			maxWidth: "1200px",
-			margin: "0 auto",
-			padding: "0 24px",
-			display: "flex",
-			justifyContent: "space-between",
-			alignItems: "center",
-		},
-		logo: {
-			display: "flex",
-			alignItems: "center",
-			gap: "12px",
-		},
-		logoIcon: {
-			width: "40px",
-			height: "40px",
-			background: "linear-gradient(135deg, #fbbf24, #f97316)",
-			borderRadius: "8px",
-			display: "flex",
-			alignItems: "center",
-			justifyContent: "center",
-			position: "relative",
-		},
-		logoIconInner: {
-			width: "24px",
-			height: "24px",
-			background: "white",
-			borderRadius: "4px",
-			opacity: 0.9,
-		},
-		logoText: {
-			fontSize: "24px",
-			fontWeight: "700",
-			color: "#1f2937",
-		},
-		userInfo: {
-			display: "flex",
-			alignItems: "center",
-			gap: "12px",
-		},
-		userAvatar: {
-			width: "40px",
-			height: "40px",
-			borderRadius: "50%",
-			background: "linear-gradient(135deg, #60a5fa, #a855f7)",
-			display: "flex",
-			alignItems: "center",
-			justifyContent: "center",
-			color: "white",
-			fontWeight: "600",
-			fontSize: "14px",
-		},
-		hero: {
-			background: "linear-gradient(135deg, #fbbf24, #f97316)",
-			position: "relative",
-			overflow: "hidden",
-			padding: "80px 24px",
-			textAlign: "center",
-		},
-		heroContent: {
-			maxWidth: "1200px",
-			margin: "0 auto",
-			position: "relative",
-			zIndex: 10,
-		},
-		heroTitle: {
-			fontSize: "48px",
-			fontWeight: "700",
-			color: "#1f2937",
-			marginBottom: "16px",
-			letterSpacing: "-0.02em",
-			animation: isVisible ? "fadeInUp 1s ease-out" : "none",
-		},
-		heroSubtitle: {
-			fontSize: "18px",
-			color: "#4b5563",
-			marginBottom: "40px",
-			maxWidth: "700px",
-			margin: "0 auto 40px auto",
-			animation: isVisible ? "fadeInUp 1s ease-out 0.2s both" : "none",
-		},
-		searchContainer: {
-			position: "relative",
-			maxWidth: "600px",
-			margin: "0 auto",
-			animation: isVisible ? "fadeInUp 1s ease-out 0.4s both" : "none",
-		},
-		searchInput: {
-			width: "100%",
-			padding: "18px 60px 18px 24px",
-			fontSize: "16px",
-			border: "2px solid rgba(255, 255, 255, 0.3)",
-			borderRadius: "50px",
-			background: "rgba(255, 255, 255, 0.9)",
-			backdropFilter: "blur(10px)",
-			outline: "none",
-			transition: "all 0.3s ease",
-			boxShadow: "0 4px 20px rgba(0, 0, 0, 0.1)",
-		},
-		searchButton: {
-			position: "absolute",
-			right: "8px",
-			top: "50%",
-			transform: "translateY(-50%)",
-			background: "linear-gradient(135deg, #1f2937, #374151)",
-			color: "white",
-			border: "none",
-			borderRadius: "50px",
-			width: "44px",
-			height: "44px",
-			display: "flex",
-			alignItems: "center",
-			justifyContent: "center",
-			cursor: "pointer",
-			transition: "all 0.3s ease",
-		},
-		backButton: {
-			display: "flex",
-			alignItems: "center",
-			gap: "8px",
-			background: "rgba(255, 255, 255, 0.9)",
-			color: "#1f2937",
-			padding: "12px 20px",
-			borderRadius: "50px",
-			textDecoration: "none",
-			fontWeight: "600",
-			transition: "all 0.3s ease",
-			border: "none",
-			cursor: "pointer",
-			marginBottom: "32px",
-			boxShadow: "0 4px 15px rgba(0, 0, 0, 0.1)",
-			alignSelf: "flex-start",
-		},
-		servicesSection: {
-			padding: "60px 24px",
-			maxWidth: "1200px",
-			margin: "0 auto",
-		},
-		servicesGrid: {
-			display: "grid",
-			gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-			gap: "24px",
-		},
-		serviceCard: {
-			background: "white",
-			borderRadius: "20px",
-			padding: "32px 24px",
-			boxShadow: "0 8px 30px rgba(0, 0, 0, 0.08)",
-			transition: "all 0.4s ease",
-			cursor: "pointer",
-			position: "relative",
-			overflow: "hidden",
-			border: "2px solid transparent",
-			textAlign: "center",
-		},
-		serviceIcon: {
-			width: "80px",
-			height: "80px",
-			borderRadius: "20px",
-			display: "flex",
-			alignItems: "center",
-			justifyContent: "center",
-			margin: "0 auto 20px auto",
-			color: "white",
-			transition: "all 0.4s ease",
-		},
-		serviceTitle: {
-			fontSize: "20px",
-			fontWeight: "700",
-			color: "#1f2937",
-			marginBottom: "12px",
-			transition: "color 0.3s ease",
-		},
-		serviceDescription: {
-			color: "#6b7280",
-			fontSize: "14px",
-			lineHeight: "1.5",
-			marginBottom: "20px",
-		},
-		serviceCategory: {
-			display: "inline-block",
-			background: "linear-gradient(135deg, #e5e7eb, #f3f4f6)",
-			color: "#6b7280",
-			padding: "6px 16px",
-			borderRadius: "20px",
-			fontSize: "12px",
-			fontWeight: "600",
-			textTransform: "uppercase",
-			letterSpacing: "0.5px",
-		},
-	};
-
-	// Agregar keyframes CSS
 	const keyframes = `
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(30px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    @keyframes slideInUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-  `;
+		@keyframes fadeInUp {
+			from { opacity: 0; transform: translateY(30px); }
+			to { opacity: 1; transform: translateY(0); }
+		}
+		@keyframes slideInUp {
+			from { opacity: 0; transform: translateY(20px); }
+			to { opacity: 1; transform: translateY(0); }
+		}
+		@keyframes float {
+			0%, 100% { transform: translateY(0px) rotate(0deg); }
+			50% { transform: translateY(-20px) rotate(3deg); }
+		}
+		@keyframes floatReverse {
+			0%, 100% { transform: translateY(0px) rotate(0deg); }
+			50% { transform: translateY(-15px) rotate(-3deg); }
+		}
+	`;
 
 	return (
-		<div style={baseStyles.container}>
+		<div
+			style={{
+				minHeight: "100vh",
+				background: "#f9fafb",
+				fontFamily: "Inter, -apple-system, BlinkMacSystemFont, sans-serif",
+			}}
+		>
 			<style>{keyframes}</style>
 
 			{/* Header */}
-			<header style={baseStyles.header}>
-				<div style={baseStyles.headerContent}>
-					<div style={baseStyles.logo}>
-						<div style={baseStyles.logoIcon}>
-							<div style={baseStyles.logoIconInner}></div>
+			<header
+				style={{
+					background: "white",
+					borderBottom: "1px solid #e5e7eb",
+					position: "sticky",
+					top: 0,
+					zIndex: 50,
+					padding: "16px 0",
+					boxShadow: "0 1px 3px rgba(0, 0, 0, 0.05)",
+				}}
+			>
+				<div
+					style={{
+						maxWidth: "1200px",
+						margin: "0 auto",
+						padding: "0 24px",
+						display: "flex",
+						justifyContent: "space-between",
+						alignItems: "center",
+					}}
+				>
+					<div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+						<div
+							style={{
+								width: "40px",
+								height: "40px",
+								background: "linear-gradient(135deg, #fbbf24, #f97316)",
+								borderRadius: "8px",
+								display: "flex",
+								alignItems: "center",
+								justifyContent: "center",
+							}}
+						>
+							<div
+								style={{
+									width: "24px",
+									height: "24px",
+									background: "white",
+									borderRadius: "4px",
+									opacity: 0.9,
+								}}
+							></div>
 						</div>
-						<span style={baseStyles.logoText}>Bam</span>
+						<span
+							style={{ fontSize: "24px", fontWeight: "700", color: "#1f2937" }}
+						>
+							Bam
+						</span>
 					</div>
-					<div style={baseStyles.userInfo}>
-						<div style={baseStyles.userAvatar}>MH</div>
-						<span style={{ color: "#6b7280" }}>Marta H.</span>
+					<div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+						<div
+							style={{
+								width: "40px",
+								height: "40px",
+								borderRadius: "50%",
+								background: "linear-gradient(135deg, #60a5fa, #a855f7)",
+								display: "flex",
+								alignItems: "center",
+								justifyContent: "center",
+								color: "white",
+								fontWeight: "600",
+								fontSize: "14px",
+							}}
+						>
+							A
+						</div>
+						<span style={{ color: "#6b7280" }}>Adriana</span>
 					</div>
 				</div>
 			</header>
 
 			{/* Hero Section */}
-			<section style={baseStyles.hero}>
-				<div style={baseStyles.heroContent}>
+			<section
+				style={{
+					background: "white",
+					position: "relative",
+					overflow: "hidden",
+					padding: "80px 24px 60px 24px",
+					boxShadow: "0 4px 20px rgba(0, 0, 0, 0.06)",
+				}}
+			>
+				{/* Líneas decorativas arriba izquierda */}
+				<div
+					style={{
+						position: "absolute",
+						top: "40px",
+						left: "6%",
+						width: "220px",
+						height: "10px",
+						background: "linear-gradient(90deg, #FFD700 0%, #FFA500 100%)",
+						borderRadius: "20px",
+						transform: "rotate(-8deg)",
+						animation: "float 6s ease-in-out infinite",
+					}}
+				></div>
+				<div
+					style={{
+						position: "absolute",
+						top: "70px",
+						left: "4%",
+						width: "180px",
+						height: "8px",
+						background: "linear-gradient(90deg, #00D4FF 0%, #0099FF 100%)",
+						borderRadius: "20px",
+						transform: "rotate(-10deg)",
+						animation: "float 7s ease-in-out infinite 0.5s",
+					}}
+				></div>
+				<div
+					style={{
+						position: "absolute",
+						top: "105px",
+						left: "8%",
+						width: "140px",
+						height: "7px",
+						background: "linear-gradient(90deg, #B794F6 0%, #9F7AEA 100%)",
+						borderRadius: "20px",
+						transform: "rotate(-6deg)",
+						animation: "float 8s ease-in-out infinite 1s",
+					}}
+				></div>
+
+				{/* Líneas decorativas abajo derecha */}
+				<div
+					style={{
+						position: "absolute",
+						bottom: "50px",
+						right: "6%",
+						width: "200px",
+						height: "10px",
+						background: "linear-gradient(90deg, #FF6B9D 0%, #FE5196 100%)",
+						borderRadius: "20px",
+						transform: "rotate(10deg)",
+						animation: "floatReverse 6s ease-in-out infinite",
+					}}
+				></div>
+				<div
+					style={{
+						position: "absolute",
+						bottom: "80px",
+						right: "8%",
+						width: "160px",
+						height: "8px",
+						background: "linear-gradient(90deg, #4ECDC4 0%, #44A08D 100%)",
+						borderRadius: "20px",
+						transform: "rotate(8deg)",
+						animation: "floatReverse 7s ease-in-out infinite 0.5s",
+					}}
+				></div>
+				<div
+					style={{
+						position: "absolute",
+						bottom: "115px",
+						right: "4%",
+						width: "140px",
+						height: "7px",
+						background: "linear-gradient(90deg, #F6D365 0%, #FDA085 100%)",
+						borderRadius: "20px",
+						transform: "rotate(12deg)",
+						animation: "floatReverse 8s ease-in-out infinite 1s",
+					}}
+				></div>
+
+				{/* Círculos decorativos */}
+				<div
+					style={{
+						position: "absolute",
+						top: "45%",
+						left: "2%",
+						width: "100px",
+						height: "100px",
+						background: "rgba(251, 191, 36, 0.05)",
+						borderRadius: "50%",
+						animation: "float 10s ease-in-out infinite",
+					}}
+				></div>
+				<div
+					style={{
+						position: "absolute",
+						top: "35%",
+						right: "3%",
+						width: "90px",
+						height: "90px",
+						background: "rgba(59, 130, 246, 0.05)",
+						borderRadius: "50%",
+						animation: "floatReverse 9s ease-in-out infinite",
+					}}
+				></div>
+
+				<div
+					style={{
+						maxWidth: "1200px",
+						margin: "0 auto",
+						position: "relative",
+						zIndex: 10,
+					}}
+				>
 					<button
 						style={{
-							...baseStyles.backButton,
-							transform: "scale(1)",
+							display: "flex",
+							alignItems: "center",
+							gap: "8px",
+							background: "#f3f4f6",
+							color: "#1f2937",
+							padding: "12px 20px",
+							borderRadius: "50px",
+							textDecoration: "none",
+							fontWeight: "600",
+							transition: "all 0.3s ease",
+							border: "none",
+							cursor: "pointer",
+							marginBottom: "32px",
+							boxShadow: "0 4px 15px rgba(0, 0, 0, 0.08)",
 						}}
-						onClick={() => navigate("/")} // 👈 Redirige al home
-						onMouseEnter={(e) => (e.target.style.transform = "scale(1.05)")}
-						onMouseLeave={(e) => (e.target.style.transform = "scale(1)")}
+						onClick={() => (window.location.href = "/")}
+						onMouseEnter={(e) => {
+							e.target.style.transform = "scale(1.05)";
+							e.target.style.background = "#e5e7eb";
+						}}
+						onMouseLeave={(e) => {
+							e.target.style.transform = "scale(1)";
+							e.target.style.background = "#f3f4f6";
+						}}
 					>
 						<BackIcon />
 						Volver a Bam Conecta 360
 					</button>
 
-					<h1 style={baseStyles.heroTitle}>Guías y Procedimientos</h1>
+					<h1
+						style={{
+							fontSize: "56px",
+							fontWeight: "800",
+							color: "#1f2937",
+							marginBottom: "16px",
+							letterSpacing: "-0.02em",
+							animation: isVisible ? "fadeInUp 1s ease-out" : "none",
+						}}
+					>
+						Guías y{" "}
+						<span
+							style={{
+								background:
+									"linear-gradient(135deg, #FF6B35 0%, #F7931E 50%, #FDC830 100%)",
+								WebkitBackgroundClip: "text",
+								WebkitTextFillColor: "transparent",
+								backgroundClip: "text",
+							}}
+						>
+							Procedimientos
+						</span>
+					</h1>
 
-					<p style={baseStyles.heroSubtitle}>
+					<p
+						style={{
+							fontSize: "20px",
+							color: "#4b5563",
+							marginBottom: "40px",
+							maxWidth: "700px",
+							lineHeight: "1.6",
+							animation: isVisible ? "fadeInUp 1s ease-out 0.2s both" : "none",
+						}}
+					>
 						Encuentra el material de procedimientos guiados Bam, realiza tus
 						gestiones paso a paso
 					</p>
 
-					<div style={baseStyles.searchContainer}>
+					<div
+						style={{
+							position: "relative",
+							maxWidth: "600px",
+							animation: isVisible ? "fadeInUp 1s ease-out 0.4s both" : "none",
+						}}
+					>
 						<input
 							type="text"
 							placeholder="Escribe tu consulta aquí"
 							value={searchTerm}
 							onChange={(e) => setSearchTerm(e.target.value)}
 							style={{
-								...baseStyles.searchInput,
-								border: searchTerm
-									? "2px solid #fbbf24"
-									: "2px solid rgba(255, 255, 255, 0.3)",
+								width: "100%",
+								padding: "18px 60px 18px 24px",
+								fontSize: "16px",
+								border: searchTerm ? "2px solid #fbbf24" : "2px solid #e5e7eb",
+								borderRadius: "50px",
+								background: "white",
+								outline: "none",
+								transition: "all 0.3s ease",
+								boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
 							}}
 						/>
 						<button
 							style={{
-								...baseStyles.searchButton,
-								transform: "scale(1)",
+								position: "absolute",
+								right: "8px",
+								top: "50%",
+								transform: "translateY(-50%)",
+								background: "linear-gradient(135deg, #1f2937, #374151)",
+								color: "white",
+								border: "none",
+								borderRadius: "50px",
+								width: "44px",
+								height: "44px",
+								display: "flex",
+								alignItems: "center",
+								justifyContent: "center",
+								cursor: "pointer",
+								transition: "all 0.3s ease",
 							}}
 							onMouseEnter={(e) =>
 								(e.target.style.transform = "translateY(-50%) scale(1.1)")
@@ -539,8 +581,16 @@ export default function GuiasProcedimientos() {
 			</section>
 
 			{/* Services Section */}
-			<section style={baseStyles.servicesSection}>
-				<div style={baseStyles.servicesGrid}>
+			<section
+				style={{ padding: "60px 24px", maxWidth: "1200px", margin: "0 auto" }}
+			>
+				<div
+					style={{
+						display: "grid",
+						gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+						gap: "24px",
+					}}
+				>
 					{filteredServices.map((service, index) => {
 						const IconComponent = service.icon;
 						const animationDelay = `${index * 0.1}s`;
@@ -549,32 +599,48 @@ export default function GuiasProcedimientos() {
 							<div
 								key={service.id}
 								style={{
-									...baseStyles.serviceCard,
-									transform:
-										hoveredCard === service.id
-											? "translateY(-8px) scale(1.02)"
-											: "translateY(0) scale(1)",
+									background: "white",
+									borderRadius: "20px",
+									padding: "32px 24px",
 									boxShadow:
 										hoveredCard === service.id
 											? "0 20px 50px rgba(0, 0, 0, 0.15)"
 											: "0 8px 30px rgba(0, 0, 0, 0.08)",
+									transition: "all 0.4s ease",
+									cursor: "pointer",
+									position: "relative",
+									overflow: "hidden",
 									border:
 										hoveredCard === service.id
 											? "2px solid #fbbf24"
 											: "2px solid transparent",
+									textAlign: "center",
+									transform:
+										hoveredCard === service.id
+											? "translateY(-8px) scale(1.02)"
+											: "translateY(0) scale(1)",
 									animation: `slideInUp 0.6s ease-out ${animationDelay} both`,
 								}}
 								onMouseEnter={() => setHoveredCard(service.id)}
 								onMouseLeave={() => setHoveredCard(null)}
+								onClick={() => (window.location.href = "/apertura-cuenta")}
 							>
 								<div
 									style={{
-										...baseStyles.serviceIcon,
+										width: "80px",
+										height: "80px",
+										borderRadius: "20px",
+										display: "flex",
+										alignItems: "center",
+										justifyContent: "center",
+										margin: "0 auto 20px auto",
+										color: "white",
 										background: service.gradient,
 										transform:
 											hoveredCard === service.id
 												? "scale(1.1) rotate(5deg)"
 												: "scale(1) rotate(0deg)",
+										transition: "all 0.4s ease",
 									}}
 								>
 									<IconComponent />
@@ -582,20 +648,43 @@ export default function GuiasProcedimientos() {
 
 								<h3
 									style={{
-										...baseStyles.serviceTitle,
+										fontSize: "20px",
+										fontWeight: "700",
 										color: hoveredCard === service.id ? "#f59e0b" : "#1f2937",
+										marginBottom: "12px",
+										transition: "color 0.3s ease",
 									}}
 								>
 									{service.title}
 								</h3>
 
-								<p style={baseStyles.serviceDescription}>
+								<p
+									style={{
+										color: "#6b7280",
+										fontSize: "14px",
+										lineHeight: "1.5",
+										marginBottom: "20px",
+									}}
+								>
 									{service.description}
 								</p>
 
-								<div style={baseStyles.serviceCategory}>{service.category}</div>
+								<div
+									style={{
+										display: "inline-block",
+										background: "linear-gradient(135deg, #e5e7eb, #f3f4f6)",
+										color: "#6b7280",
+										padding: "6px 16px",
+										borderRadius: "20px",
+										fontSize: "12px",
+										fontWeight: "600",
+										textTransform: "uppercase",
+										letterSpacing: "0.5px",
+									}}
+								>
+									{service.category}
+								</div>
 
-								{/* Efectos decorativos */}
 								<div
 									style={{
 										position: "absolute",
@@ -619,20 +708,9 @@ export default function GuiasProcedimientos() {
 
 				{filteredServices.length === 0 && searchTerm && (
 					<div
-						style={{
-							textAlign: "center",
-							padding: "60px 0",
-							color: "#6b7280",
-						}}
+						style={{ textAlign: "center", padding: "60px 0", color: "#6b7280" }}
 					>
-						<div
-							style={{
-								fontSize: "48px",
-								marginBottom: "16px",
-							}}
-						>
-							🔍
-						</div>
+						<div style={{ fontSize: "48px", marginBottom: "16px" }}>🔍</div>
 						<h3
 							style={{
 								fontSize: "24px",

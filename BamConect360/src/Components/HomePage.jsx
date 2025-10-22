@@ -1,16 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom"; // 👈 Importa esto
 
 export default function BamConecta360() {
 	const [hoveredCard, setHoveredCard] = useState(null);
 	const [isVisible, setIsVisible] = useState(false);
-	const navigate = useNavigate(); // 👈 Inicializa navegación
 
 	useEffect(() => {
 		setIsVisible(true);
 	}, []);
 
-	// Iconos como componentes SVG simples
 	const FileIcon = () => (
 		<svg
 			width="32"
@@ -110,300 +107,266 @@ export default function BamConecta360() {
 		},
 	];
 
-	const baseStyles = {
-		container: {
-			minHeight: "100vh",
-			background:
-				"linear-gradient(135deg, #f8fafc 0%, #ffffff 50%, #eff6ff 100%)",
-			fontFamily: "Inter, -apple-system, BlinkMacSystemFont, sans-serif",
-		},
-		header: {
-			background: "rgba(255, 255, 255, 0.8)",
-			backdropFilter: "blur(20px)",
-			borderBottom: "1px solid rgba(229, 231, 235, 0.5)",
-			position: "sticky",
-			top: 0,
-			zIndex: 50,
-			padding: "16px 0",
-		},
-		headerContent: {
-			maxWidth: "1200px",
-			margin: "0 auto",
-			padding: "0 24px",
-			display: "flex",
-			justifyContent: "space-between",
-			alignItems: "center",
-		},
-		logo: {
-			display: "flex",
-			alignItems: "center",
-			gap: "12px",
-		},
-		logoIcon: {
-			width: "40px",
-			height: "40px",
-			background: "linear-gradient(135deg, #fbbf24, #f97316)",
-			borderRadius: "8px",
-			display: "flex",
-			alignItems: "center",
-			justifyContent: "center",
-			position: "relative",
-		},
-		logoIconInner: {
-			width: "24px",
-			height: "24px",
-			background: "white",
-			borderRadius: "4px",
-			opacity: 0.9,
-		},
-		logoText: {
-			fontSize: "24px",
-			fontWeight: "700",
-			color: "#1f2937",
-		},
-		userInfo: {
-			display: "flex",
-			alignItems: "center",
-			gap: "12px",
-		},
-		userAvatar: {
-			width: "40px",
-			height: "40px",
-			borderRadius: "50%",
-			background: "linear-gradient(135deg, #60a5fa, #a855f7)",
-			display: "flex",
-			alignItems: "center",
-			justifyContent: "center",
-			color: "white",
-			fontWeight: "600",
-			fontSize: "14px",
-		},
-		hero: {
-			background: "linear-gradient(135deg, #F0D942, #f97316, #FFB002)",
-			position: "relative",
-			overflow: "hidden",
-			padding: "96px 24px",
-			textAlign: "center",
-		},
-		heroContent: {
-			maxWidth: "1200px",
-			margin: "0 auto",
-			position: "relative",
-			zIndex: 10,
-		},
-		heroBadge: {
-			display: "inline-flex",
-			alignItems: "center",
-			gap: "8px",
-			background: "rgba(255, 255, 255, 0.2)",
-			backdropFilter: "blur(10px)",
-			borderRadius: "50px",
-			padding: "8px 16px",
-			marginBottom: "32px",
-			color: "white",
-			fontWeight: "500",
-			animation: isVisible ? "fadeInUp 1s ease-out" : "none",
-		},
-		heroTitle: {
-			fontSize: "64px",
-			fontWeight: "700",
-			color: "white",
-			marginBottom: "24px",
-			letterSpacing: "-0.02em",
-			animation: isVisible ? "fadeInUp 1s ease-out 0.2s both" : "none",
-		},
-		heroSubtitle: {
-			fontSize: "20px",
-			color: "rgba(255, 255, 255, 0.9)",
-			marginBottom: "32px",
-			maxWidth: "600px",
-			margin: "0 auto 32px auto",
-			animation: isVisible ? "fadeInUp 1s ease-out 0.4s both" : "none",
-		},
-		servicesSection: {
-			padding: "80px 24px",
-			maxWidth: "1200px",
-			margin: "0 auto",
-		},
-		servicesHeader: {
-			textAlign: "center",
-			marginBottom: "64px",
-		},
-		servicesTitle: {
-			fontSize: "36px",
-			fontWeight: "700",
-			color: "#1f2937",
-			marginBottom: "16px",
-		},
-		servicesDescription: {
-			fontSize: "18px",
-			color: "#6b7280",
-			maxWidth: "800px",
-			margin: "0 auto",
-			lineHeight: "1.7",
-		},
-		servicesGrid: {
-			display: "grid",
-			gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-			gap: "32px",
-			marginBottom: "64px",
-		},
-		serviceCard: {
-			background: "white",
-			borderRadius: "16px",
-			padding: "32px",
-			boxShadow: "0 10px 25px rgba(0, 0, 0, 0.1)",
-			transition: "all 0.5s ease",
-			cursor: "pointer",
-			position: "relative",
-			overflow: "hidden",
-			transform:
-				hoveredCard === 1
-					? "translateY(-8px)"
-					: hoveredCard === 2
-					? "translateY(-8px)"
-					: hoveredCard === 3
-					? "translateY(-8px)"
-					: "translateY(0)",
-		},
-		serviceIcon: {
-			width: "64px",
-			height: "64px",
-			borderRadius: "12px",
-			display: "flex",
-			alignItems: "center",
-			justifyContent: "center",
-			marginBottom: "24px",
-			color: "white",
-			transition: "transform 0.3s ease",
-		},
-		serviceTitle: {
-			fontSize: "24px",
-			fontWeight: "700",
-			color: "#1f2937",
-			marginBottom: "16px",
-		},
-		serviceDescription: {
-			color: "#6b7280",
-			marginBottom: "24px",
-			lineHeight: "1.6",
-		},
-		serviceLink: {
-			display: "flex",
-			alignItems: "center",
-			color: "#3b82f6",
-			fontWeight: "600",
-			textDecoration: "none",
-			gap: "8px",
-		},
-		ctaButton: {
-			display: "inline-flex",
-			alignItems: "center",
-			gap: "12px",
-			background: "linear-gradient(135deg, #7AC9E8, #8567C7)",
-			color: "white",
-			padding: "16px 32px",
-			borderRadius: "50px",
-			fontWeight: "600",
-			fontSize: "18px",
-			textDecoration: "none",
-			transition: "all 0.3s ease",
-			boxShadow: "0 10px 25px rgba(59, 130, 246, 0.3)",
-			border: "none",
-			cursor: "pointer",
-		},
-		footer: {
-			background: "#1f2937",
-			color: "white",
-			padding: "48px 24px",
-			textAlign: "center",
-			marginTop: "80px",
-		},
-	};
-
-	// Agregar keyframes CSS
 	const keyframes = `
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(30px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    @keyframes pulse {
-      0%, 100% {
-        opacity: 0.6;
-        transform: scale(1);
-      }
-      50% {
-        opacity: 1;
-        transform: scale(1.1);
-      }
-    }
-  `;
+		@keyframes fadeInUp {
+			from { opacity: 0; transform: translateY(30px); }
+			to { opacity: 1; transform: translateY(0); }
+		}
+		@keyframes float {
+			0%, 100% { transform: translateY(0px) rotate(0deg); }
+			50% { transform: translateY(-20px) rotate(3deg); }
+		}
+		@keyframes floatReverse {
+			0%, 100% { transform: translateY(0px) rotate(0deg); }
+			50% { transform: translateY(-15px) rotate(-3deg); }
+		}
+	`;
 
 	return (
-		<div style={baseStyles.container}>
+		<div
+			style={{
+				minHeight: "100vh",
+				background: "#f9fafb",
+				fontFamily: "Inter, -apple-system, BlinkMacSystemFont, sans-serif",
+			}}
+		>
 			<style>{keyframes}</style>
 
 			{/* Header */}
-			<header style={baseStyles.header}>
-				<div style={baseStyles.headerContent}>
-					<div style={baseStyles.logo}>
-						<div style={baseStyles.logoIcon}>
-							<div style={baseStyles.logoIconInner}></div>
+			<header
+				style={{
+					background: "white",
+					borderBottom: "1px solid #e5e7eb",
+					position: "sticky",
+					top: 0,
+					zIndex: 50,
+					padding: "16px 0",
+					boxShadow: "0 1px 3px rgba(0, 0, 0, 0.05)",
+				}}
+			>
+				<div
+					style={{
+						maxWidth: "1200px",
+						margin: "0 auto",
+						padding: "0 24px",
+						display: "flex",
+						justifyContent: "space-between",
+						alignItems: "center",
+					}}
+				>
+					<div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+						<div
+							style={{
+								width: "40px",
+								height: "40px",
+								background: "linear-gradient(135deg, #fbbf24, #f97316)",
+								borderRadius: "8px",
+								display: "flex",
+								alignItems: "center",
+								justifyContent: "center",
+							}}
+						>
+							<div
+								style={{
+									width: "24px",
+									height: "24px",
+									background: "white",
+									borderRadius: "4px",
+									opacity: 0.9,
+								}}
+							></div>
 						</div>
-						<span style={baseStyles.logoText}>Bam</span>
+						<span
+							style={{ fontSize: "24px", fontWeight: "700", color: "#1f2937" }}
+						>
+							Bam
+						</span>
 					</div>
-					<div style={baseStyles.userInfo}>
-						<div style={baseStyles.userAvatar}>MH</div>
-						<span style={{ color: "#6b7280" }}>Marta H.</span>
+					<div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+						<div
+							style={{
+								width: "40px",
+								height: "40px",
+								borderRadius: "50%",
+								background: "linear-gradient(135deg, #60a5fa, #a855f7)",
+								display: "flex",
+								alignItems: "center",
+								justifyContent: "center",
+								color: "white",
+								fontWeight: "600",
+								fontSize: "14px",
+							}}
+						>
+							A
+						</div>
+						<span style={{ color: "#6b7280" }}>Adriana</span>
 					</div>
 				</div>
 			</header>
 
 			{/* Hero Section */}
-			<section style={baseStyles.hero}>
-				{/* Elementos flotantes */}
+			<section
+				style={{
+					background: "white",
+					position: "relative",
+					overflow: "hidden",
+					padding: "120px 24px 80px 24px",
+					textAlign: "center",
+					boxShadow: "0 4px 20px rgba(0, 0, 0, 0.06)",
+				}}
+			>
+				{/* Líneas decorativas arriba izquierda */}
 				<div
 					style={{
 						position: "absolute",
-						top: "80px",
-						left: "40px",
-						width: "80px",
-						height: "80px",
-						background: "rgba(255, 255, 255, 0.2)",
-						borderRadius: "50%",
-						animation: "pulse 2s infinite",
+						top: "60px",
+						left: "8%",
+						width: "280px",
+						height: "12px",
+						background: "linear-gradient(90deg, #FFD700 0%, #FFA500 100%)",
+						borderRadius: "20px",
+						transform: "rotate(-8deg)",
+						animation: "float 6s ease-in-out infinite",
 					}}
 				></div>
 				<div
 					style={{
 						position: "absolute",
-						top: "160px",
-						right: "80px",
-						width: "64px",
-						height: "64px",
-						background: "rgba(255, 255, 255, 0.2)",
-						borderRadius: "50%",
-						animation: "pulse 2s infinite 1s",
+						top: "95px",
+						left: "6%",
+						width: "220px",
+						height: "10px",
+						background: "linear-gradient(90deg, #00D4FF 0%, #0099FF 100%)",
+						borderRadius: "20px",
+						transform: "rotate(-10deg)",
+						animation: "float 7s ease-in-out infinite 0.5s",
+					}}
+				></div>
+				<div
+					style={{
+						position: "absolute",
+						top: "135px",
+						left: "10%",
+						width: "160px",
+						height: "8px",
+						background: "linear-gradient(90deg, #B794F6 0%, #9F7AEA 100%)",
+						borderRadius: "20px",
+						transform: "rotate(-6deg)",
+						animation: "float 8s ease-in-out infinite 1s",
 					}}
 				></div>
 
-				<div style={baseStyles.heroContent}>
-					<div style={baseStyles.heroBadge}>
+				{/* Líneas decorativas abajo derecha */}
+				<div
+					style={{
+						position: "absolute",
+						bottom: "80px",
+						right: "8%",
+						width: "260px",
+						height: "12px",
+						background: "linear-gradient(90deg, #FF6B9D 0%, #FE5196 100%)",
+						borderRadius: "20px",
+						transform: "rotate(10deg)",
+						animation: "floatReverse 6s ease-in-out infinite",
+					}}
+				></div>
+				<div
+					style={{
+						position: "absolute",
+						bottom: "115px",
+						right: "10%",
+						width: "200px",
+						height: "10px",
+						background: "linear-gradient(90deg, #4ECDC4 0%, #44A08D 100%)",
+						borderRadius: "20px",
+						transform: "rotate(8deg)",
+						animation: "floatReverse 7s ease-in-out infinite 0.5s",
+					}}
+				></div>
+				<div
+					style={{
+						position: "absolute",
+						bottom: "155px",
+						right: "6%",
+						width: "180px",
+						height: "8px",
+						background: "linear-gradient(90deg, #F6D365 0%, #FDA085 100%)",
+						borderRadius: "20px",
+						transform: "rotate(12deg)",
+						animation: "floatReverse 8s ease-in-out infinite 1s",
+					}}
+				></div>
+
+				{/* Círculos decorativos */}
+				<div
+					style={{
+						position: "absolute",
+						top: "50%",
+						left: "3%",
+						width: "120px",
+						height: "120px",
+						background: "rgba(124, 58, 237, 0.05)",
+						borderRadius: "50%",
+						animation: "float 10s ease-in-out infinite",
+					}}
+				></div>
+				<div
+					style={{
+						position: "absolute",
+						top: "40%",
+						right: "5%",
+						width: "100px",
+						height: "100px",
+						background: "rgba(249, 115, 22, 0.05)",
+						borderRadius: "50%",
+						animation: "floatReverse 9s ease-in-out infinite",
+					}}
+				></div>
+
+				<div
+					style={{
+						maxWidth: "1200px",
+						margin: "0 auto",
+						position: "relative",
+						zIndex: 10,
+					}}
+				>
+					<div
+						style={{
+							display: "inline-flex",
+							alignItems: "center",
+							gap: "8px",
+							background: "#FFF8E1",
+							border: "1px solid #FFD54F",
+							borderRadius: "50px",
+							padding: "8px 20px",
+							marginBottom: "32px",
+							color: "#F57C00",
+							fontWeight: "600",
+							fontSize: "14px",
+							animation: isVisible ? "fadeInUp 1s ease-out" : "none",
+						}}
+					>
 						<SparklesIcon />
 						<span>Nueva experiencia mejorada</span>
 					</div>
 
-					<h1 style={baseStyles.heroTitle}>
+					<h1
+						style={{
+							fontSize: "72px",
+							fontWeight: "800",
+							color: "#1f2937",
+							marginBottom: "24px",
+							letterSpacing: "-0.03em",
+							lineHeight: "1.1",
+							animation: isVisible ? "fadeInUp 1s ease-out 0.2s both" : "none",
+						}}
+					>
 						Bam Conecta{" "}
 						<span
 							style={{
-								background: "linear-gradient(135deg, #ffffff, #fef3c7)",
+								background:
+									"linear-gradient(135deg, #FF6B35 0%, #F7931E 50%, #FDC830 100%)",
 								WebkitBackgroundClip: "text",
 								WebkitTextFillColor: "transparent",
 								backgroundClip: "text",
@@ -413,7 +376,17 @@ export default function BamConecta360() {
 						</span>
 					</h1>
 
-					<p style={baseStyles.heroSubtitle}>
+					<p
+						style={{
+							fontSize: "22px",
+							color: "#4b5563",
+							marginBottom: "40px",
+							maxWidth: "700px",
+							margin: "0 auto 40px auto",
+							lineHeight: "1.6",
+							animation: isVisible ? "fadeInUp 1s ease-out 0.4s both" : "none",
+						}}
+					>
 						¿Necesitas ayuda? Tu centro de recursos todo en uno para una
 						experiencia perfecta
 					</p>
@@ -421,57 +394,94 @@ export default function BamConecta360() {
 			</section>
 
 			{/* Services Section */}
-			<section style={baseStyles.servicesSection}>
-				<div style={baseStyles.servicesHeader}>
-					<h2 style={baseStyles.servicesTitle}>
+			<section
+				style={{ padding: "80px 24px", maxWidth: "1200px", margin: "0 auto" }}
+			>
+				<div style={{ textAlign: "center", marginBottom: "64px" }}>
+					<h2
+						style={{
+							fontSize: "36px",
+							fontWeight: "700",
+							color: "#1f2937",
+							marginBottom: "16px",
+						}}
+					>
 						Consulta de procesos y políticas
 					</h2>
-					<p style={baseStyles.servicesDescription}>
+					<p
+						style={{
+							fontSize: "18px",
+							color: "#6b7280",
+							maxWidth: "800px",
+							margin: "0 auto",
+							lineHeight: "1.7",
+						}}
+					>
 						Encuentra todos los recursos en un solo lugar. Recuerda que siempre
 						puedes acercarte a tus compañeros o supervisores para resolver
 						consultas, si necesitas algo, ¡comunícalo!
 					</p>
 				</div>
 
-				<div style={baseStyles.servicesGrid}>
-					{services.map((service, index) => {
+				<div
+					style={{
+						display: "grid",
+						gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+						gap: "32px",
+						marginBottom: "64px",
+					}}
+				>
+					{services.map((service) => {
 						const IconComponent = service.icon;
 						return (
 							<div
 								key={service.id}
 								style={{
-									...baseStyles.serviceCard,
-									transform:
-										hoveredCard === service.id
-											? "translateY(-8px) scale(1.02)"
-											: "translateY(0) scale(1)",
+									background: "white",
+									borderRadius: "16px",
+									padding: "32px",
 									boxShadow:
 										hoveredCard === service.id
 											? "0 20px 40px rgba(0, 0, 0, 0.15)"
 											: "0 10px 25px rgba(0, 0, 0, 0.1)",
+									transition: "all 0.5s ease",
+									cursor: "pointer",
+									border: "1px solid #f3f4f6",
+									transform:
+										hoveredCard === service.id
+											? "translateY(-8px) scale(1.02)"
+											: "translateY(0) scale(1)",
 								}}
 								onMouseEnter={() => setHoveredCard(service.id)}
 								onMouseLeave={() => setHoveredCard(null)}
 								onClick={() => {
 									if (service.id === 1) {
-										navigate("/guias"); // 👈 Redirección personalizada
+										window.location.href = "/guias";
 									}
 									if (service.id === 2) {
-										navigate("/soporte");
+										window.location.href = "/soporte";
 									}
 									if (service.id === 3) {
-										navigate("/chatbot");
+										window.location.href = "/chatbot";
 									}
 								}}
 							>
 								<div
 									style={{
-										...baseStyles.serviceIcon,
+										width: "64px",
+										height: "64px",
+										borderRadius: "12px",
+										display: "flex",
+										alignItems: "center",
+										justifyContent: "center",
+										marginBottom: "24px",
+										color: "white",
 										background: service.gradient,
 										transform:
 											hoveredCard === service.id
-												? "rotate(6deg)"
-												: "rotate(0deg)",
+												? "rotate(6deg) scale(1.05)"
+												: "rotate(0deg) scale(1)",
+										transition: "transform 0.3s ease",
 									}}
 								>
 									<IconComponent />
@@ -479,18 +489,35 @@ export default function BamConecta360() {
 
 								<h3
 									style={{
-										...baseStyles.serviceTitle,
+										fontSize: "24px",
+										fontWeight: "700",
 										color: hoveredCard === service.id ? "#3b82f6" : "#1f2937",
+										marginBottom: "16px",
+										transition: "color 0.3s ease",
 									}}
 								>
 									{service.title}
 								</h3>
 
-								<p style={baseStyles.serviceDescription}>
+								<p
+									style={{
+										color: "#6b7280",
+										marginBottom: "24px",
+										lineHeight: "1.6",
+									}}
+								>
 									{service.description}
 								</p>
 
-								<div style={baseStyles.serviceLink}>
+								<div
+									style={{
+										display: "flex",
+										alignItems: "center",
+										color: "#3b82f6",
+										fontWeight: "600",
+										gap: "8px",
+									}}
+								>
 									<span>Explorar ahora</span>
 									<ChevronRightIcon />
 								</div>
@@ -503,14 +530,28 @@ export default function BamConecta360() {
 				<div style={{ textAlign: "center" }}>
 					<button
 						style={{
-							...baseStyles.ctaButton,
-							transform: "scale(1)",
-							":hover": {
-								transform: "scale(1.05)",
-							},
+							display: "inline-flex",
+							alignItems: "center",
+							gap: "12px",
+							background: "linear-gradient(135deg, #7AC9E8, #8567C7)",
+							color: "white",
+							padding: "16px 32px",
+							borderRadius: "50px",
+							fontWeight: "600",
+							fontSize: "18px",
+							boxShadow: "0 10px 25px rgba(59, 130, 246, 0.3)",
+							border: "none",
+							cursor: "pointer",
+							transition: "all 0.3s ease",
 						}}
-						onMouseEnter={(e) => (e.target.style.transform = "scale(1.05)")}
-						onMouseLeave={(e) => (e.target.style.transform = "scale(1)")}
+						onMouseEnter={(e) => {
+							e.target.style.transform = "scale(1.05)";
+							e.target.style.boxShadow = "0 15px 35px rgba(59, 130, 246, 0.4)";
+						}}
+						onMouseLeave={(e) => {
+							e.target.style.transform = "scale(1)";
+							e.target.style.boxShadow = "0 10px 25px rgba(59, 130, 246, 0.3)";
+						}}
 					>
 						<MessageIcon />
 						<span>¿Necesitas ayuda adicional?</span>
@@ -520,7 +561,15 @@ export default function BamConecta360() {
 			</section>
 
 			{/* Footer */}
-			<footer style={baseStyles.footer}>
+			<footer
+				style={{
+					background: "#1f2937",
+					color: "white",
+					padding: "48px 24px",
+					textAlign: "center",
+					marginTop: "80px",
+				}}
+			>
 				<div style={{ maxWidth: "1200px", margin: "0 auto" }}>
 					<div
 						style={{
@@ -540,7 +589,6 @@ export default function BamConecta360() {
 								display: "flex",
 								alignItems: "center",
 								justifyContent: "center",
-								position: "relative",
 							}}
 						>
 							<div
