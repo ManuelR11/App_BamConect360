@@ -19,7 +19,7 @@ const __dirname = path.dirname(__filename);
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = parseInt(process.env.PORT) || 3001;
 
 // Configurar OpenAI
 const openai = new OpenAI({
@@ -319,7 +319,26 @@ app.use("*", (req, res) => {
 });
 
 // Iniciar servidor
-app.listen(PORT, () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
 	console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
 	console.log(`📡 API disponible en http://localhost:${PORT}/api`);
+	console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+});
+
+// Manejo de errores del servidor
+server.on('error', (error) => {
+	if (error.code === 'EADDRINUSE') {
+		console.error(`❌ Puerto ${PORT} ya está en uso`);
+	} else {
+		console.error('❌ Error del servidor:', error);
+	}
+});
+
+// Manejo graceful shutdown
+process.on('SIGTERM', () => {
+	console.log('🛑 Cerrando servidor...');
+	server.close(() => {
+		console.log('✅ Servidor cerrado correctamente');
+		process.exit(0);
+	});
 });
