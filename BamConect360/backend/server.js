@@ -106,10 +106,32 @@ const pdfContentSchema = new mongoose.Schema({
 const PDFContent = mongoose.model("PDFContent", pdfContentSchema);
 
 // Conectar a MongoDB
+const mongoUri = process.env.MONGODB_URI || "mongodb://localhost:27017/bamconect360";
+console.log("🔗 Intentando conectar a MongoDB:", mongoUri.replace(/\/\/.*@/, "//***@")); // Ocultar credenciales en logs
+
 mongoose
-	.connect(process.env.MONGODB_URI || "mongodb://localhost:27017/bamconect360")
-	.then(() => console.log("✅ Conectado a MongoDB"))
-	.catch((err) => console.error("❌ Error conectando a MongoDB:", err));
+	.connect(mongoUri)
+	.then(() => {
+		console.log("✅ Conectado a MongoDB exitosamente");
+		loadTrainingContent(); // Cargar contenido después de conectar
+	})
+	.catch((err) => {
+		console.error("❌ Error conectando a MongoDB:", err.message);
+		console.error("📋 URI (sin credenciales):", mongoUri.replace(/\/\/.*@/, "//***@"));
+	});
+
+// Manejar eventos de conexión de MongoDB
+mongoose.connection.on('connected', () => {
+	console.log('🔗 Mongoose conectado a MongoDB');
+});
+
+mongoose.connection.on('error', (err) => {
+	console.error('❌ Error de conexión MongoDB:', err);
+});
+
+mongoose.connection.on('disconnected', () => {
+	console.log('🔌 Mongoose desconectado de MongoDB');
+});
 
 // Variable para almacenar el contenido de entrenamiento en memoria
 let trainingContent = "";
@@ -134,12 +156,25 @@ loadTrainingContent();
 
 // RUTAS
 
+// Ruta básica de verificación (no depende de MongoDB)
+app.get("/", (req, res) => {
+	res.json({
+		status: "OK",
+		message: "BamConect360 API está funcionando",
+		timestamp: new Date().toISOString(),
+		environment: process.env.NODE_ENV || "development",
+		port: PORT
+	});
+});
+
 // Ruta de salud del servidor
 app.get("/api/health", (req, res) => {
 	res.json({
 		status: "OK",
 		message: "Servidor funcionando correctamente",
 		documentsLoaded: trainingContent.length > 0 ? "Sí" : "No",
+		mongodb: mongoose.connection.readyState === 1 ? "Conectado" : "Desconectado",
+		timestamp: new Date().toISOString()
 	});
 });
 
