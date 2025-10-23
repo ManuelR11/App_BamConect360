@@ -3,6 +3,7 @@
 ## 📋 Pasos para desplegar en Railway
 
 ### 1. **Preparar el repositorio**
+
 ```bash
 git add .
 git commit -m "Ready for Railway deployment"
@@ -10,11 +11,13 @@ git push origin main
 ```
 
 ### 2. **Configurar Railway**
+
 1. Ve a [railway.app](https://railway.app)
 2. Conecta tu repositorio de GitHub
 3. Railway detectará automáticamente el Dockerfile
 
 ### 3. **Configurar variables de entorno**
+
 En Railway dashboard, ve a Variables y agrega:
 
 ```env
@@ -26,28 +29,33 @@ MAX_TOKENS=1000
 ```
 
 ### 4. **MongoDB Setup**
+
 - Usa MongoDB Atlas (gratis): https://mongodb.com/atlas
 - O agrega Railway MongoDB desde Add-ons
 - Copia la URI de conexión a MONGODB_URI
 
 ### 5. **Deploy**
+
 - Railway construirá automáticamente usando Docker
 - Te dará una URL como: `https://tu-proyecto.railway.app`
 
 ## 🛠️ Desarrollo Local
 
 ### Backend
+
 ```bash
 cd backend
 npm run dev
 ```
 
 ### Frontend
+
 ```bash
 npm run dev
 ```
 
 ### Full Stack
+
 ```bash
 npm run backend:dev  # Terminal 1
 npm run dev          # Terminal 2

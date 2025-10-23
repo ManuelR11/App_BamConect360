@@ -2,9 +2,10 @@ import React, { useState, useEffect, useRef } from "react";
 
 export default function BamChatbot() {
 	// Detectar automáticamente la URL del backend
-	const API_BASE_URL = window.location.hostname === "localhost" 
-		? "http://localhost:3001/api"
-		: `${window.location.origin}/api`;
+	const API_BASE_URL =
+		window.location.hostname === "localhost"
+			? "http://localhost:3001/api"
+			: `${window.location.origin}/api`;
 
 	const [isVisible, setIsVisible] = useState(false);
 	const [messages, setMessages] = useState([

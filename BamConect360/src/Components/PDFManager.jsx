@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 
 // Detectar automáticamente la URL del backend
-const API_BASE_URL = window.location.hostname === "localhost" 
-	? "http://localhost:3001/api"
-	: `${window.location.origin}/api`;
+const API_BASE_URL =
+	window.location.hostname === "localhost"
+		? "http://localhost:3001/api"
+		: `${window.location.origin}/api`;
 
 export default function PDFManager() {
 	const [pdfs, setPdfs] = useState([]);
