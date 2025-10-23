@@ -36,8 +36,8 @@ const iconSVG = `
   <circle cx="372" cy="160" r="6" fill="white"/>
 </svg>`;
 
-// Tamaños de iconos necesarios
-const iconSizes = [72, 96, 128, 144, 152, 192, 384, 512];
+// Tamaños de iconos necesarios (incluye específicos para iPad/iOS)
+const iconSizes = [57, 60, 72, 76, 96, 114, 120, 128, 144, 152, 167, 192, 384, 512];
 const iconsDir = path.join(__dirname, "public", "icons");
 
 // Asegurar que el directorio existe
