@@ -4,17 +4,14 @@ FROM node:20-alpine
 # Crear directorio de la aplicación
 WORKDIR /app
 
-# Copiar el package.json limpio para deployment
+# Copiar solo los archivos necesarios del backend
+COPY simple-server.js ./
 COPY deploy-package.json ./package.json
 
-# Instalar solo las dependencias del backend
+# Instalar solo las dependencias necesarias
 RUN npm install --only=production
 
-# Copiar el código fuente del backend
-COPY backend/ ./
-COPY simple-server.js ./
-
-# Crear directorio para uploads
+# Crear directorio para uploads (si es necesario)
 RUN mkdir -p uploads
 
 # Exponer el puerto que Railway usará
