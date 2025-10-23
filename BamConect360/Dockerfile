@@ -1,21 +1,23 @@
-# Usar Node.js 20 LTS para compatibilidad con las dependencias
+# Usar Node.js 20 LTS
 FROM node:20-alpine
 
-# Crear directorio de la aplicación
+# Establecer directorio de trabajo
 WORKDIR /app
 
-# Copiar solo los archivos necesarios del backend
-COPY simple-server.js ./
-COPY deploy-package.json ./package.json
+# Copiar package.json para instalar dependencias
+COPY deploy-package.json package.json
 
-# Instalar solo las dependencias necesarias
+# Instalar dependencias de producción
 RUN npm install --only=production
 
-# Crear directorio para uploads (si es necesario)
+# Copiar el servidor simple
+COPY simple-server.js .
+
+# Crear directorio uploads por si es necesario
 RUN mkdir -p uploads
 
-# Exponer el puerto que Railway usará
+# El puerto lo maneja Railway dinámicamente
 EXPOSE $PORT
 
-# Comando para ejecutar la aplicación directamente
+# Ejecutar el servidor
 CMD ["node", "simple-server.js"]
