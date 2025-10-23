@@ -64,12 +64,38 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // Servir archivos estáticos del frontend
-const frontendPath = process.env.NODE_ENV === 'production' 
-	? path.join(__dirname, "../frontend") 
-	: path.join(__dirname, "../dist");
+const frontendPath =
+	process.env.NODE_ENV === "production"
+		? path.join(__dirname, "../frontend")
+		: path.join(__dirname, "../dist");
 
 console.log(`📁 Sirviendo archivos estáticos desde: ${frontendPath}`);
-console.log(`📁 Archivos disponibles:`, fs.existsSync(frontendPath) ? fs.readdirSync(frontendPath) : 'Directorio no existe');
+console.log(
+	`📁 Archivos disponibles:`,
+	fs.existsSync(frontendPath)
+		? fs.readdirSync(frontendPath)
+		: "Directorio no existe"
+);
+
+// Middleware específico para archivos PWA
+app.get("/manifest.json", (req, res) => {
+	res.setHeader("Content-Type", "application/manifest+json");
+	res.setHeader("Cache-Control", "public, max-age=604800"); // 1 semana
+	res.sendFile(path.join(frontendPath, "manifest.json"));
+});
+
+app.get("/manifest.webmanifest", (req, res) => {
+	res.setHeader("Content-Type", "application/manifest+json");
+	res.setHeader("Cache-Control", "public, max-age=604800");
+	res.sendFile(path.join(frontendPath, "manifest.webmanifest"));
+});
+
+app.get("/sw.js", (req, res) => {
+	res.setHeader("Content-Type", "application/javascript");
+	res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+	res.setHeader("Service-Worker-Allowed", "/");
+	res.sendFile(path.join(frontendPath, "sw.js"));
+});
 
 app.use(express.static(frontendPath));
 
@@ -314,11 +340,9 @@ PREGUNTA DEL USUARIO: ${message}`;
 	} catch (error) {
 		console.error("Error en chat:", error);
 		if (error.code === "insufficient_quota") {
-			res
-				.status(503)
-				.json({
-					error: "Cuota de OpenAI agotada. Por favor, verifica tu suscripción.",
-				});
+			res.status(503).json({
+				error: "Cuota de OpenAI agotada. Por favor, verifica tu suscripción.",
+			});
 		} else if (error.code === "invalid_api_key") {
 			res.status(401).json({ error: "Clave de API de OpenAI inválida." });
 		} else {
@@ -361,18 +385,20 @@ app.get("*", (req, res) => {
 	if (req.path.startsWith("/api")) {
 		return res.status(404).json({ error: "Ruta de API no encontrada" });
 	}
-	
+
 	const indexPath = path.join(frontendPath, "index.html");
 	console.log(`📄 Sirviendo index.html desde: ${indexPath}`);
 	console.log(`📄 ¿Archivo existe?`, fs.existsSync(indexPath));
-	
+
 	if (fs.existsSync(indexPath)) {
 		res.sendFile(indexPath);
 	} else {
-		res.status(404).json({ 
+		res.status(404).json({
 			error: "Frontend no encontrado",
 			path: indexPath,
-			available: fs.existsSync(frontendPath) ? fs.readdirSync(frontendPath) : 'Dir no existe'
+			available: fs.existsSync(frontendPath)
+				? fs.readdirSync(frontendPath)
+				: "Dir no existe",
 		});
 	}
 });
