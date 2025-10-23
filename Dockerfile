@@ -1,7 +1,7 @@
-# Multi-stage build para aplicación React + Node.js
-FROM node:20-alpine AS builder
+# Dockerfile simplificado para Railway
+FROM node:20-alpine
 
-# Instalar dependencias del sistema necesarias para canvas
+# Instalar dependencias del sistema
 RUN apk add --no-cache \
     python3 \
     make \
@@ -19,7 +19,7 @@ RUN apk add --no-cache \
 # Establecer directorio de trabajo
 WORKDIR /app
 
-# Copiar package.json del frontend desde BamConect360
+# Copiar package.json y instalar dependencias
 COPY BamConect360/package.json ./
 COPY BamConect360/backend/package.json ./backend/
 
@@ -30,58 +30,26 @@ RUN npm install
 WORKDIR /app/backend
 RUN npm install
 
+# Crear archivo dummy para pdf-parse (solución temporal)
+RUN mkdir -p /app/test/data
+RUN echo "dummy content" > /app/test/data/05-versions-space.pdf
+
 # Volver al directorio principal
 WORKDIR /app
 
-# Copiar código fuente desde BamConect360
+# Copiar código fuente
 COPY BamConect360/ .
 
-# Construir la aplicación React
+# Construir React
 RUN npm run build
 
-# Stage 2: Producción
-FROM node:20-alpine AS production
-
-# Instalar dependencias del sistema para canvas en producción
-RUN apk add --no-cache \
-    cairo \
-    jpeg \
-    pango \
-    musl \
-    giflib \
-    pixman \
-    libjpeg-turbo \
-    freetype
-
-# Crear usuario no-root
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S bamconect -u 1001
-
-# Establecer directorio de trabajo
-WORKDIR /app
-
-# Copiar dependencias del backend
-COPY --from=builder /app/backend/package.json ./backend/
-COPY --from=builder /app/backend/node_modules ./backend/node_modules/
-COPY --from=builder /app/backend/server.js ./backend/
-
-# Copiar build del frontend
-COPY --from=builder /app/dist ./frontend/
-
-# Crear directorio uploads
-RUN mkdir -p uploads && chown -R bamconect:nodejs uploads
-RUN mkdir -p backend/uploads && chown -R bamconect:nodejs backend/uploads
-
-# Cambiar propietario de archivos
-RUN chown -R bamconect:nodejs /app
-
-# Cambiar a usuario no-root
-USER bamconect
+# Crear directorios necesarios
+RUN mkdir -p uploads backend/uploads
 
 # Exponer puerto
 EXPOSE $PORT
 
-# Variables de entorno por defecto
+# Variables de entorno
 ENV NODE_ENV=production
 ENV PORT=3001
 
