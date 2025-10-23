@@ -8,27 +8,8 @@ export default defineConfig({
 		react(),
 		VitePWA({
 			registerType: "autoUpdate",
-			includeAssets: ["favicon.ico", "apple-touch-icon.png", "masked-icon.svg"],
-			manifest: {
-				name: "BamConect360",
-				short_name: "BamConect360",
-				description: "Aplicación de gestión y soporte BamConect360",
-				theme_color: "#2563eb",
-				background_color: "#ffffff",
-				display: "standalone",
-				icons: [
-					{
-						src: "icons/icon-192x192.png",
-						sizes: "192x192",
-						type: "image/png",
-					},
-					{
-						src: "icons/icon-512x512.png",
-						sizes: "512x512",
-						type: "image/png",
-					},
-				],
-			},
+			includeAssets: ["favicon.png", "apple-touch-icon.png", "icons/*.png"],
+			manifest: false, // Usar el manifest.json externo
 			workbox: {
 				globPatterns: ["**/*.{js,css,html,ico,png,svg,pdf}"],
 				runtimeCaching: [
