@@ -1,23 +1,89 @@
-# Usar Node.js 20 LTS
-FROM node:20-alpine
+# Multi-stage build para aplicación React + Node.js
+FROM node:20-alpine AS builder
+
+# Instalar dependencias del sistema necesarias para canvas
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    cairo-dev \
+    jpeg-dev \
+    pango-dev \
+    musl-dev \
+    giflib-dev \
+    pixman-dev \
+    pangomm-dev \
+    libjpeg-turbo-dev \
+    freetype-dev
 
 # Establecer directorio de trabajo
 WORKDIR /app
 
-# Copiar package.json para instalar dependencias
-COPY deploy-package.json package.json
+# Copiar package.json del frontend
+COPY package.json ./
+COPY backend/package.json ./backend/
 
-# Instalar dependencias de producción
-RUN npm install --only=production
+# Instalar dependencias del frontend
+RUN npm install
 
-# Copiar el servidor simple
-COPY simple-server.js .
+# Instalar dependencias del backend
+WORKDIR /app/backend
+RUN npm install
 
-# Crear directorio uploads por si es necesario
-RUN mkdir -p uploads
+# Volver al directorio principal
+WORKDIR /app
 
-# El puerto lo maneja Railway dinámicamente
+# Copiar código fuente
+COPY . .
+
+# Construir la aplicación React
+RUN npm run build
+
+# Stage 2: Producción
+FROM node:20-alpine AS production
+
+# Instalar dependencias del sistema para canvas en producción
+RUN apk add --no-cache \
+    cairo \
+    jpeg \
+    pango \
+    musl \
+    giflib \
+    pixman \
+    libjpeg-turbo \
+    freetype
+
+# Crear usuario no-root
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S bamconect -u 1001
+
+# Establecer directorio de trabajo
+WORKDIR /app
+
+# Copiar dependencias del backend
+COPY --from=builder /app/backend/package.json ./backend/
+COPY --from=builder /app/backend/node_modules ./backend/node_modules/
+COPY --from=builder /app/backend/server.js ./backend/
+
+# Copiar build del frontend
+COPY --from=builder /app/dist ./frontend/
+
+# Crear directorio uploads
+RUN mkdir -p uploads && chown -R bamconect:nodejs uploads
+RUN mkdir -p backend/uploads && chown -R bamconect:nodejs backend/uploads
+
+# Cambiar propietario de archivos
+RUN chown -R bamconect:nodejs /app
+
+# Cambiar a usuario no-root
+USER bamconect
+
+# Exponer puerto
 EXPOSE $PORT
 
-# Ejecutar el servidor
-CMD ["node", "simple-server.js"]
+# Variables de entorno por defecto
+ENV NODE_ENV=production
+ENV PORT=3001
+
+# Comando de inicio
+CMD ["node", "backend/server.js"]

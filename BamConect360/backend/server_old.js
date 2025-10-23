@@ -120,18 +120,39 @@ const pdfContentSchema = new mongoose.Schema({
 const PDFContent = mongoose.model("PDFContent", pdfContentSchema);
 
 // Conectar a MongoDB
-const mongoUri = process.env.MONGODB_URI || "mongodb://localhost:27017/bamconect360";
-console.log("🔗 Intentando conectar a MongoDB:", mongoUri.replace(/\/\/.*@/, "//***@"));
+const mongoUri =
+	process.env.MONGODB_URI || "mongodb://localhost:27017/bamconect360";
+console.log(
+	"🔗 Intentando conectar a MongoDB:",
+	mongoUri.replace(/\/\/.*@/, "//***@")
+); // Ocultar credenciales en logs
 
 mongoose
 	.connect(mongoUri)
 	.then(() => {
 		console.log("✅ Conectado a MongoDB exitosamente");
-		loadTrainingContent();
+		loadTrainingContent(); // Cargar contenido después de conectar
 	})
 	.catch((err) => {
 		console.error("❌ Error conectando a MongoDB:", err.message);
+		console.error(
+			"📋 URI (sin credenciales):",
+			mongoUri.replace(/\/\/.*@/, "//***@")
+		);
 	});
+
+// Manejar eventos de conexión de MongoDB
+mongoose.connection.on("connected", () => {
+	console.log("🔗 Mongoose conectado a MongoDB");
+});
+
+mongoose.connection.on("error", (err) => {
+	console.error("❌ Error de conexión MongoDB:", err);
+});
+
+mongoose.connection.on("disconnected", () => {
+	console.log("🔌 Mongoose desconectado de MongoDB");
+});
 
 // Variable para almacenar el contenido de entrenamiento en memoria
 let trainingContent = "";
@@ -143,7 +164,9 @@ async function loadTrainingContent() {
 		trainingContent = pdfs
 			.map((pdf) => pdf.content)
 			.join("\n\n--- DOCUMENTO SEPARADO ---\n\n");
-		console.log(`📚 Contenido de entrenamiento cargado: ${pdfs.length} documentos`);
+		console.log(
+			`📚 Contenido de entrenamiento cargado: ${pdfs.length} documentos`
+		);
 	} catch (error) {
 		console.error("Error cargando contenido de entrenamiento:", error);
 	}
@@ -151,7 +174,7 @@ async function loadTrainingContent() {
 
 // RUTAS
 
-// Ruta básica de verificación
+// Ruta básica de verificación (no depende de MongoDB)
 app.get("/", (req, res) => {
 	try {
 		res.status(200).json({
@@ -174,8 +197,8 @@ app.get("/api/health", (req, res) => {
 			status: "OK",
 			message: "Servidor funcionando correctamente",
 			documentsLoaded: trainingContent.length > 0 ? "Sí" : "No",
-			mongodb: mongoose.connection.readyState === 1 ? "Conectado" : "Desconectado",
-			openai: openai ? "Configurado" : "No configurado",
+			mongodb:
+				mongoose.connection.readyState === 1 ? "Conectado" : "Desconectado",
 			timestamp: new Date().toISOString(),
 		});
 	} catch (error) {
@@ -191,20 +214,28 @@ app.post("/api/upload-pdf", upload.single("pdf"), async (req, res) => {
 			return res.status(400).json({ error: "No se ha subido ningún archivo" });
 		}
 
+		// Leer y procesar el PDF
 		const pdfBuffer = fs.readFileSync(req.file.path);
 		const pdfData = await pdfParse(pdfBuffer);
 
 		if (!pdfData.text || pdfData.text.trim().length === 0) {
-			return res.status(400).json({ error: "El PDF no contiene texto legible" });
+			return res
+				.status(400)
+				.json({ error: "El PDF no contiene texto legible" });
 		}
 
+		// Guardar en la base de datos
 		const pdfContent = new PDFContent({
 			filename: req.file.originalname,
 			content: pdfData.text,
 		});
 
 		await pdfContent.save();
+
+		// Actualizar el contenido de entrenamiento
 		await loadTrainingContent();
+
+		// Eliminar el archivo temporal
 		fs.unlinkSync(req.file.path);
 
 		res.json({
@@ -214,9 +245,12 @@ app.post("/api/upload-pdf", upload.single("pdf"), async (req, res) => {
 		});
 	} catch (error) {
 		console.error("Error procesando PDF:", error);
+
+		// Limpiar archivo si existe
 		if (req.file && fs.existsSync(req.file.path)) {
 			fs.unlinkSync(req.file.path);
 		}
+
 		res.status(500).json({
 			error: "Error procesando el PDF",
 			details: error.message,
@@ -230,6 +264,7 @@ app.get("/api/pdfs", async (req, res) => {
 		const pdfs = await PDFContent.find({ isActive: true })
 			.select("filename uploadDate")
 			.sort({ uploadDate: -1 });
+
 		res.json(pdfs);
 	} catch (error) {
 		console.error("Error obteniendo PDFs:", error);
@@ -258,6 +293,7 @@ app.post("/api/chat", async (req, res) => {
 			return res.status(400).json({ error: "El mensaje no puede estar vacío" });
 		}
 
+		// Verificar si OpenAI está configurado
 		if (!openai) {
 			return res.json({
 				response: "Lo siento, el servicio de chat no está disponible. OpenAI API Key no configurada.",
@@ -266,10 +302,12 @@ app.post("/api/chat", async (req, res) => {
 
 		if (trainingContent.length === 0) {
 			return res.json({
-				response: "Lo siento, aún no tengo documentos para consultar. Por favor, sube algunos PDFs primero para que pueda ayudarte.",
+				response:
+					"Lo siento, aún no tengo documentos para consultar. Por favor, sube algunos PDFs primero para que pueda ayudarte.",
 			});
 		}
 
+		// Crear el prompt para OpenAI
 		const systemPrompt = `Eres un asistente especializado de Bam Conecta 360. Tu única función es responder preguntas basándote EXCLUSIVAMENTE en el contenido de los documentos que te proporciono a continuación.
 
 INSTRUCCIONES IMPORTANTES:
@@ -286,30 +324,85 @@ PREGUNTA DEL USUARIO: ${message}`;
 
 		const completion = await openai.chat.completions.create({
 			model: process.env.OPENAI_MODEL || "gpt-3.5-turbo",
-			messages: [{ role: "system", content: systemPrompt }],
+			messages: [
+				{
+					role: "system",
+					content: systemPrompt,
+				},
+			],
 			max_tokens: parseInt(process.env.MAX_TOKENS) || 1000,
-			temperature: 0.3,
+			temperature: 0.3, // Respuestas más consistentes y menos creativas
 		});
 
 		const response = completion.choices[0].message.content;
-		res.json({ response });
 
+		res.json({ response });
 	} catch (error) {
 		console.error("Error en chat:", error);
+
 		if (error.code === "insufficient_quota") {
-			res.status(503).json({ error: "Cuota de OpenAI agotada. Por favor, verifica tu suscripción." });
+			res.status(503).json({
+				error: "Cuota de OpenAI agotada. Por favor, verifica tu suscripción.",
+			});
 		} else if (error.code === "invalid_api_key") {
-			res.status(401).json({ error: "Clave de API de OpenAI inválida." });
+			res.status(401).json({
+				error: "Clave de API de OpenAI inválida.",
+			});
 		} else {
 			res.status(500).json({
 				error: "Error interno del servidor",
-				details: process.env.NODE_ENV === "development" ? error.message : undefined,
+				details:
+					process.env.NODE_ENV === "development" ? error.message : undefined,
+			});
+		}
+	}
+});
+- No inventes información ni uses conocimiento externo
+- Mantén un tono profesional y útil
+- Si encuentras información relevante, cítala de manera clara
+
+CONTENIDO DE LOS DOCUMENTOS:
+${trainingContent}
+
+PREGUNTA DEL USUARIO: ${message}`;
+
+		const completion = await openai.chat.completions.create({
+			model: process.env.OPENAI_MODEL || "gpt-3.5-turbo",
+			messages: [
+				{
+					role: "system",
+					content: systemPrompt,
+				},
+			],
+			max_tokens: parseInt(process.env.MAX_TOKENS) || 1000,
+			temperature: 0.3, // Respuestas más consistentes y menos creativas
+		});
+
+		const response = completion.choices[0].message.content;
+
+		res.json({ response });
+	} catch (error) {
+		console.error("Error en chat:", error);
+
+		if (error.code === "insufficient_quota") {
+			res.status(503).json({
+				error: "Cuota de OpenAI agotada. Por favor, verifica tu suscripción.",
+			});
+		} else if (error.code === "invalid_api_key") {
+			res.status(401).json({
+				error: "Clave de API de OpenAI inválida.",
+			});
+		} else {
+			res.status(500).json({
+				error: "Error interno del servidor",
+				details:
+					process.env.NODE_ENV === "development" ? error.message : undefined,
 			});
 		}
 	}
 });
 
-// Ruta para resetear el entrenamiento
+// Ruta para resetear el entrenamiento (eliminar todos los PDFs)
 app.post("/api/reset-training", async (req, res) => {
 	try {
 		await PDFContent.updateMany({}, { isActive: false });
@@ -325,19 +418,30 @@ app.post("/api/reset-training", async (req, res) => {
 app.use((error, req, res, next) => {
 	if (error instanceof multer.MulterError) {
 		if (error.code === "LIMIT_FILE_SIZE") {
-			return res.status(400).json({ error: "El archivo es demasiado grande. Máximo 10MB." });
+			return res
+				.status(400)
+				.json({ error: "El archivo es demasiado grande. Máximo 10MB." });
 		}
 	}
+
 	console.error("Error no manejado:", error);
 	res.status(500).json({ error: "Error interno del servidor" });
 });
 
-// Ruta catch-all para React Router
+// Ruta catch-all para React Router (debe estar antes del 404)
 app.get("*", (req, res) => {
+	// Si es una ruta de API, devolver 404
 	if (req.path.startsWith("/api")) {
 		return res.status(404).json({ error: "Ruta de API no encontrada" });
 	}
+	
+	// Para todas las demás rutas, servir index.html
 	res.sendFile(path.join(__dirname, "../frontend/index.html"));
+});
+
+// Ruta 404 para APIs solamente
+app.use("/api/*", (req, res) => {
+	res.status(404).json({ error: "Ruta de API no encontrada" });
 });
 
 // Iniciar servidor

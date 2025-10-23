@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
 
 export default function BamChatbot() {
-	const API_BASE_URL =
-		window.location.hostname === "localhost"
-			? "http://localhost:3001/api"
-			: "https://tu-backend-railway.railway.app/api"; // Cambiarás esto por tu URL de Railway
+	// Detectar automáticamente la URL del backend
+	const API_BASE_URL = window.location.hostname === "localhost" 
+		? "http://localhost:3001/api"
+		: `${window.location.origin}/api`;
 
 	const [isVisible, setIsVisible] = useState(false);
 	const [messages, setMessages] = useState([
