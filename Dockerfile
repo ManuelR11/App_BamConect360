@@ -58,7 +58,6 @@ EXPOSE $PORT
 
 # Variables de entorno
 ENV NODE_ENV=production
-ENV PORT=8080
 
 # Comando de inicio
 CMD ["node", "backend/server.js"]
