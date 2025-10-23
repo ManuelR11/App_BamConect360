@@ -12,6 +12,7 @@ RUN npm install --only=production
 
 # Copiar el código fuente del backend
 COPY backend/ ./
+COPY simple-server.js ./
 
 # Crear directorio para uploads
 RUN mkdir -p uploads
@@ -20,4 +21,4 @@ RUN mkdir -p uploads
 EXPOSE $PORT
 
 # Comando para ejecutar la aplicación directamente
-CMD ["node", "server.js"]
+CMD ["node", "simple-server.js"]
