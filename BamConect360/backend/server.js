@@ -40,6 +40,12 @@ app.use(
 	})
 );
 
+// Middleware de logging
+app.use((req, res, next) => {
+	console.log(`📥 ${req.method} ${req.path} - ${new Date().toISOString()}`);
+	next();
+});
+
 // Rate limiting
 const limiter = rateLimit({
 	windowMs: 15 * 60 * 1000, // 15 minutos
@@ -151,31 +157,38 @@ async function loadTrainingContent() {
 	}
 }
 
-// Cargar contenido al iniciar
-loadTrainingContent();
-
 // RUTAS
 
 // Ruta básica de verificación (no depende de MongoDB)
 app.get("/", (req, res) => {
-	res.json({
-		status: "OK",
-		message: "BamConect360 API está funcionando",
-		timestamp: new Date().toISOString(),
-		environment: process.env.NODE_ENV || "development",
-		port: PORT
-	});
+	try {
+		res.status(200).json({
+			status: "OK",
+			message: "BamConect360 API está funcionando",
+			timestamp: new Date().toISOString(),
+			environment: process.env.NODE_ENV || "development",
+			port: PORT
+		});
+	} catch (error) {
+		console.error("Error en ruta principal:", error);
+		res.status(500).json({ error: "Error interno del servidor" });
+	}
 });
 
 // Ruta de salud del servidor
 app.get("/api/health", (req, res) => {
-	res.json({
-		status: "OK",
-		message: "Servidor funcionando correctamente",
-		documentsLoaded: trainingContent.length > 0 ? "Sí" : "No",
-		mongodb: mongoose.connection.readyState === 1 ? "Conectado" : "Desconectado",
-		timestamp: new Date().toISOString()
-	});
+	try {
+		res.status(200).json({
+			status: "OK",
+			message: "Servidor funcionando correctamente",
+			documentsLoaded: trainingContent.length > 0 ? "Sí" : "No",
+			mongodb: mongoose.connection.readyState === 1 ? "Conectado" : "Desconectado",
+			timestamp: new Date().toISOString()
+		});
+	} catch (error) {
+		console.error("Error en health check:", error);
+		res.status(500).json({ error: "Error interno del servidor" });
+	}
 });
 
 // Ruta para subir PDFs
