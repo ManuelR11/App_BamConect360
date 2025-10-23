@@ -64,7 +64,14 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // Servir archivos estáticos del frontend
-app.use(express.static(path.join(__dirname, "../frontend")));
+const frontendPath = process.env.NODE_ENV === 'production' 
+	? path.join(__dirname, "../frontend") 
+	: path.join(__dirname, "../dist");
+
+console.log(`📁 Sirviendo archivos estáticos desde: ${frontendPath}`);
+console.log(`📁 Archivos disponibles:`, fs.existsSync(frontendPath) ? fs.readdirSync(frontendPath) : 'Directorio no existe');
+
+app.use(express.static(frontendPath));
 
 // Crear directorio para uploads si no existe
 const uploadsDir = path.join(__dirname, "uploads");
@@ -354,7 +361,20 @@ app.get("*", (req, res) => {
 	if (req.path.startsWith("/api")) {
 		return res.status(404).json({ error: "Ruta de API no encontrada" });
 	}
-	res.sendFile(path.join(__dirname, "../frontend/index.html"));
+	
+	const indexPath = path.join(frontendPath, "index.html");
+	console.log(`📄 Sirviendo index.html desde: ${indexPath}`);
+	console.log(`📄 ¿Archivo existe?`, fs.existsSync(indexPath));
+	
+	if (fs.existsSync(indexPath)) {
+		res.sendFile(indexPath);
+	} else {
+		res.status(404).json({ 
+			error: "Frontend no encontrado",
+			path: indexPath,
+			available: fs.existsSync(frontendPath) ? fs.readdirSync(frontendPath) : 'Dir no existe'
+		});
+	}
 });
 
 // Iniciar servidor
