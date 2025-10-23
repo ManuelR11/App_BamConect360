@@ -46,12 +46,19 @@ RUN npm run build
 # Crear directorios necesarios
 RUN mkdir -p uploads backend/uploads
 
+# IMPORTANTE: Copiar el build de React al directorio frontend
+RUN mkdir -p frontend
+RUN cp -r dist/* frontend/
+
+# Verificar que los archivos están en el lugar correcto
+RUN ls -la frontend/
+
 # Exponer puerto
 EXPOSE $PORT
 
 # Variables de entorno
 ENV NODE_ENV=production
-ENV PORT=3001
+ENV PORT=8080
 
 # Comando de inicio
 CMD ["node", "backend/server.js"]
