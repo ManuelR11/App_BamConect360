@@ -5,6 +5,7 @@
 ### 📲 Cómo instalar en iPad (Safari):
 
 #### Método 1: "Añadir a Inicio"
+
 1. **Abre Safari** en tu iPad
 2. **Ve a tu app**: `https://tu-app.railway.app` (o localhost para pruebas)
 3. **Toca el botón Compartir** 📤 (en la parte superior)
@@ -13,6 +14,7 @@
 6. **Toca "Añadir"**
 
 #### Método 2: Chrome en iPad
+
 1. **Abre Chrome** en tu iPad
 2. **Ve a tu app**
 3. **Toca el menú** (⋮) → **"Instalar app"**
@@ -21,18 +23,21 @@
 ### 🎯 Características en iPad:
 
 #### ✅ **Experiencia Nativa:**
+
 - **Pantalla completa**: Sin barras de navegador
 - **Icono en pantalla de inicio**: Como cualquier app nativa
 - **Modo standalone**: Se comporta como app independiente
 - **Gestos iOS**: Funciona con gestos nativos del iPad
 
 #### ✅ **Funcionalidades PWA:**
+
 - **Offline**: Funciona sin internet
 - **Actualizaciones automáticas**: Se actualiza en segundo plano
 - **Notificaciones**: (si las configuras más adelante)
 - **Almacenamiento local**: Guarda datos localmente
 
 #### ✅ **Optimizaciones iOS:**
+
 - **Apple Touch Icons**: Iconos perfectos para iOS
 - **Status bar**: Integrado con la barra de estado
 - **Splash screen**: Pantalla de carga personalizada
@@ -41,6 +46,7 @@
 ### 📐 Tamaños de Iconos para iPad:
 
 Tu app ahora incluye todos los tamaños necesarios:
+
 - **57x57**: iPhone original
 - **60x60**: iPhone retina
 - **72x72**: iPad
@@ -58,21 +64,26 @@ Tu app ahora incluye todos los tamaños necesarios:
 
 ```html
 <!-- Ya configurado en tu app -->
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="BamConect360">
-<meta name="apple-touch-fullscreen" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta
+	name="apple-mobile-web-app-status-bar-style"
+	content="black-translucent"
+/>
+<meta name="apple-mobile-web-app-title" content="BamConect360" />
+<meta name="apple-touch-fullscreen" content="yes" />
 ```
 
 ### 📱 Diferencias por Dispositivo:
 
 #### **iPad (Safari):**
+
 - Instalación vía "Añadir a Inicio"
 - Iconos Apple Touch específicos
 - Gestos nativos iOS
 - Integración con multitarea
 
 #### **iPad (Chrome):**
+
 - Instalación estándar PWA
 - Botón "Instalar app"
 - Service Worker completo
@@ -81,6 +92,7 @@ Tu app ahora incluye todos los tamaños necesarios:
 ### 🚀 Para desplegar en Railway:
 
 Cuando esté listo, ejecuta:
+
 ```bash
 npm run build
 git add .
@@ -98,6 +110,7 @@ git push origin main
 ### 🎉 Resultado:
 
 Tu PWA en iPad será:
+
 - ✅ **Instalable** como app nativa
 - ✅ **Funcional offline**
 - ✅ **Rápida** con cache inteligente
