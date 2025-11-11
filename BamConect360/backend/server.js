@@ -324,19 +324,50 @@ const servePdfAsBase64 = async (req, res) => {
 
 		console.log(`✅ [PDF BASE64] PDF encontrado: ${pdf.filename}`);
 
-		// SOLUCIÓN SIMPLE: Usar directamente el filePath de la base de datos
-		const targetFilePath = pdf.filePath;
+		// Usar el filePath de la base de datos, pero ajustar para desarrollo/producción
+		let targetFilePath = pdf.filePath;
 		
-		console.log(`📂 [PDF BASE64] Usando filePath de BD: ${targetFilePath}`);
+		console.log(`📂 [PDF BASE64] FilePath original de BD: ${targetFilePath}`);
+
+		// Si estamos en desarrollo local, ajustar la ruta
+		if (!isProduction && targetFilePath.includes('/app/backend/uploads/')) {
+			// Convertir ruta de producción a ruta de desarrollo local
+			const filename = path.basename(targetFilePath);
+			targetFilePath = path.join(__dirname, 'uploads', filename);
+			console.log(`🔄 [PDF BASE64] Ajustado para desarrollo local: ${targetFilePath}`);
+		} else if (isProduction && !targetFilePath.includes('/app/backend/uploads/')) {
+			// Convertir ruta de desarrollo a ruta de producción
+			const filename = path.basename(targetFilePath);
+			targetFilePath = `/app/backend/uploads/${filename}`;
+			console.log(`🔄 [PDF BASE64] Ajustado para producción: ${targetFilePath}`);
+		}
+		
+		console.log(`📂 [PDF BASE64] Usando filePath final: ${targetFilePath}`);
 
 		// Verificar que el archivo existe
 		if (!targetFilePath || !fs.existsSync(targetFilePath)) {
 			console.log(`❌ [PDF BASE64] Archivo no existe: ${targetFilePath}`);
-			return res.status(404).json({
-				error: "Archivo PDF no encontrado en el sistema",
-				filename: pdf.filename,
-				filePath: targetFilePath,
-			});
+			
+			// Como fallback, intentar buscar en el directorio uploads
+			const uploadsDir = path.join(__dirname, "uploads");
+			const filename = path.basename(targetFilePath);
+			const fallbackPath = path.join(uploadsDir, filename);
+			
+			console.log(`🔍 [PDF BASE64] Intentando fallback: ${fallbackPath}`);
+			
+			if (fs.existsSync(fallbackPath)) {
+				targetFilePath = fallbackPath;
+				console.log(`✅ [PDF BASE64] Encontrado con fallback: ${targetFilePath}`);
+			} else {
+				console.log(`❌ [PDF BASE64] Fallback también falló`);
+				return res.status(404).json({
+					error: "Archivo PDF no encontrado en el sistema",
+					filename: pdf.filename,
+					originalPath: pdf.filePath,
+					attemptedPath: targetFilePath,
+					fallbackPath: fallbackPath,
+				});
+			}
 		}
 
 		console.log(`✅ [PDF BASE64] Archivo confirmado: ${targetFilePath}`);
