@@ -83,6 +83,18 @@ app.use(limiter);
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
+// ⚠️ RUTAS CRÍTICAS DE PDF - DEBEN ESTAR ANTES DE LOS ARCHIVOS ESTÁTICOS
+app.get("/documents/test", (req, res) => {
+	console.log("🧪 [PDF ROUTE] Test de documentos funcionando");
+	res.json({ message: "Ruta de documentos funcionando correctamente" });
+});
+
+app.get("/documents/:id", servePdfDocument);
+app.get("/api/pdf/:id", (req, res) => {
+	console.log(`🚀 [API PDF ROUTE] Ruta /api/pdf/${req.params.id} alcanzada!`);
+	servePdfDocument(req, res);
+});
+
 // Servir archivos estáticos del frontend
 const frontendPath =
 	process.env.NODE_ENV === "production"
@@ -255,17 +267,7 @@ const servePdfDocument = async (req, res) => {
 	}
 };
 
-// Rutas para servir PDFs directamente desde el backend
-app.get("/documents/test", (req, res) => {
-	console.log("🧪 [PDF ROUTE] Test de documentos funcionando");
-	res.json({ message: "Ruta de documentos funcionando correctamente" });
-});
 
-app.get("/documents/:id", servePdfDocument);
-app.get("/api/pdf/:id", (req, res) => {
-	console.log(`🚀 [API PDF ROUTE] Ruta /api/pdf/${req.params.id} alcanzada!`);
-	servePdfDocument(req, res);
-});
 
 // Servir archivos estáticos del frontend después de exponer las rutas de PDF
 app.use(express.static(frontendPath));
