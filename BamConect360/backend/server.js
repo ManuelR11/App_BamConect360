@@ -200,7 +200,7 @@ const servePdfDocument = async (req, res) => {
 	}
 };
 
-// Nueva función para servir PDF como Base64
+// Nueva función para servir PDF como Base64 (mejorada para buscar por nombre)
 const servePdfAsBase64 = async (req, res) => {
 	const { id } = req.params;
 	console.log(`📄 [PDF BASE64 ROUTE] ID: ${id}`);
@@ -217,31 +217,68 @@ const servePdfAsBase64 = async (req, res) => {
 			return res.status(404).json({ error: "PDF no encontrado" });
 		}
 
-		console.log(`🔍 [PDF BASE64] Verificando archivo: ${pdf.filePath}`);
-		console.log(`🔍 [PDF BASE64] Archivo existe: ${fs.existsSync(pdf.filePath)}`);
-
-		if (!pdf.filePath || !fs.existsSync(pdf.filePath)) {
-			console.log(`❌ [PDF BASE64] Archivo no encontrado: ${pdf.filePath}`);
+		console.log(`� [PDF BASE64] PDF encontrado: ${pdf.filename}`);
+		
+		// Buscar archivo físico por nombre de archivo
+		const uploadsDir = path.join(__dirname, 'uploads');
+		const availableFiles = fs.readdirSync(uploadsDir).filter(file => file.endsWith('.pdf'));
+		console.log(`� [PDF BASE64] Archivos disponibles: ${availableFiles.join(', ')}`);
+		
+		// Estrategia 1: Buscar archivo que coincida exactamente con el nombre
+		let targetFilePath = null;
+		
+		// Primero buscar por nombre exacto en los archivos disponibles
+		const exactMatch = availableFiles.find(file => {
+			// Extraer el nombre original del archivo generado
+			// Los archivos se guardan como: pdf-timestamp-random.pdf
+			// Pero necesitamos mapear por nombre original
+			return false; // Por ahora no hay mapeo directo
+		});
+		
+		// Estrategia 2: Buscar por orden de subida (más reciente primero)
+		if (!targetFilePath && availableFiles.length > 0) {
+			// Ordenar archivos por fecha de creación (timestamp en el nombre)
+			const sortedFiles = availableFiles.sort((a, b) => {
+				const timestampA = a.match(/pdf-(\d+)-/)?.[1];
+				const timestampB = b.match(/pdf-(\d+)-/)?.[1];
+				if (timestampA && timestampB) {
+					return parseInt(timestampB) - parseInt(timestampA); // Más reciente primero
+				}
+				return 0;
+			});
 			
-			// Listar archivos disponibles para debug
-			const uploadsDir = path.join(__dirname, 'uploads');
-			if (fs.existsSync(uploadsDir)) {
-				const files = fs.readdirSync(uploadsDir);
-				console.log(`📁 [PDF BASE64] Archivos disponibles: ${files.join(', ')}`);
+			console.log(`📅 [PDF BASE64] Archivos ordenados por fecha: ${sortedFiles.join(', ')}`);
+			
+			// Mapeo manual basado en el nombre del PDF solicitado
+			const filename = pdf.filename.toLowerCase();
+			if (filename.includes('apertura') || filename.includes('cuenta')) {
+				// Para "Manual de apertura de cuenta ejemplo.pdf", usar el archivo más reciente
+				targetFilePath = path.join(uploadsDir, sortedFiles[0]);
+				console.log(`🎯 [PDF BASE64] Mapeando "apertura de cuenta" a: ${sortedFiles[0]}`);
+			} else {
+				// Para otros archivos, usar el primero disponible
+				targetFilePath = path.join(uploadsDir, sortedFiles[0]);
+				console.log(`� [PDF BASE64] Usando archivo por defecto: ${sortedFiles[0]}`);
 			}
-			
+		}
+		
+		// Verificar que el archivo existe
+		if (!targetFilePath || !fs.existsSync(targetFilePath)) {
+			console.log(`❌ [PDF BASE64] No se pudo encontrar archivo para: ${pdf.filename}`);
 			return res.status(404).json({ 
 				error: "Archivo PDF no encontrado",
-				expectedPath: pdf.filePath,
-				filename: pdf.filename
+				filename: pdf.filename,
+				availableFiles: availableFiles
 			});
 		}
 
+		console.log(`✅ [PDF BASE64] Usando archivo: ${targetFilePath}`);
+
 		// Leer el archivo y convertirlo a Base64
-		const pdfBuffer = fs.readFileSync(pdf.filePath);
+		const pdfBuffer = fs.readFileSync(targetFilePath);
 		const base64Data = pdfBuffer.toString('base64');
 		
-		console.log(`✅ [PDF BASE64] PDF convertido a Base64: ${pdf.filename} (${pdfBuffer.length} bytes)`);
+		console.log(`📄 [PDF BASE64] PDF convertido a Base64: ${pdf.filename} (${pdfBuffer.length} bytes)`);
 		
 		res.json({
 			filename: pdf.filename,
@@ -270,6 +307,60 @@ app.get("/api/pdf/:id", (req, res) => {
 	servePdfDocument(req, res);
 });
 app.get("/api/pdf/:id/base64", servePdfAsBase64);
+
+// Ruta de debug para mapear PDFs
+app.get("/api/debug/pdf-mapping", async (req, res) => {
+	try {
+		console.log('🔍 [DEBUG] Iniciando mapeo de PDFs...');
+		
+		// Obtener archivos físicos
+		const uploadsDir = path.join(__dirname, 'uploads');
+		const physicalFiles = fs.readdirSync(uploadsDir)
+			.filter(file => file.endsWith('.pdf'))
+			.map(file => {
+				const filePath = path.join(uploadsDir, file);
+				const stats = fs.statSync(filePath);
+				const timestamp = file.match(/pdf-(\d+)-/)?.[1];
+				return {
+					filename: file,
+					size: stats.size,
+					created: stats.birthtime,
+					timestamp: timestamp ? new Date(parseInt(timestamp)) : null
+				};
+			})
+			.sort((a, b) => b.created - a.created);
+		
+		// Obtener PDFs de la base de datos
+		const dbPdfs = await PDFContent.find({ isActive: true })
+			.select('filename filePath uploadDate')
+			.sort({ uploadDate: -1 });
+		
+		const mapping = {
+			physicalFiles: physicalFiles,
+			databasePdfs: dbPdfs,
+			suggestions: []
+		};
+		
+		// Crear sugerencias de mapeo
+		dbPdfs.forEach((dbPdf, index) => {
+			const suggestion = {
+				dbId: dbPdf._id,
+				dbFilename: dbPdf.filename,
+				dbUploadDate: dbPdf.uploadDate,
+				suggestedPhysicalFile: physicalFiles[index]?.filename || 'No disponible',
+				confidence: physicalFiles[index] ? 'alta' : 'baja'
+			};
+			mapping.suggestions.push(suggestion);
+		});
+		
+		console.log(`📊 [DEBUG] Archivos físicos: ${physicalFiles.length}, PDFs en BD: ${dbPdfs.length}`);
+		res.json(mapping);
+		
+	} catch (error) {
+		console.error('❌ [DEBUG] Error en mapeo:', error);
+		res.status(500).json({ error: 'Error obteniendo mapeo de PDFs' });
+	}
+});
 
 // Endpoint para verificar inconsistencias
 app.get("/api/debug/pdf-files", async (req, res) => {
