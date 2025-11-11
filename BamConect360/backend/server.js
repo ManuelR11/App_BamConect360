@@ -21,6 +21,9 @@ dotenv.config();
 const app = express();
 const PORT = parseInt(process.env.PORT) || 3001;
 
+// Configurar trust proxy para Railway
+app.set('trust proxy', 1);
+
 // Configurar OpenAI solo si hay API key
 let openai = null;
 if (process.env.OPENAI_API_KEY) {
@@ -204,23 +207,41 @@ const servePdfAsBase64 = async (req, res) => {
 
 	try {
 		if (!isValidPdfId(id)) {
+			console.log(`❌ [PDF BASE64] ID inválido: ${id}`);
 			return res.status(400).json({ error: "ID de PDF inválido" });
 		}
 
 		const pdf = await PDFContent.findById(id);
 		if (!pdf || !pdf.isActive) {
+			console.log(`❌ [PDF BASE64] PDF no encontrado o inactivo: ${id}`);
 			return res.status(404).json({ error: "PDF no encontrado" });
 		}
 
+		console.log(`🔍 [PDF BASE64] Verificando archivo: ${pdf.filePath}`);
+		console.log(`🔍 [PDF BASE64] Archivo existe: ${fs.existsSync(pdf.filePath)}`);
+
 		if (!pdf.filePath || !fs.existsSync(pdf.filePath)) {
-			return res.status(404).json({ error: "Archivo PDF no encontrado" });
+			console.log(`❌ [PDF BASE64] Archivo no encontrado: ${pdf.filePath}`);
+			
+			// Listar archivos disponibles para debug
+			const uploadsDir = path.join(__dirname, 'uploads');
+			if (fs.existsSync(uploadsDir)) {
+				const files = fs.readdirSync(uploadsDir);
+				console.log(`📁 [PDF BASE64] Archivos disponibles: ${files.join(', ')}`);
+			}
+			
+			return res.status(404).json({ 
+				error: "Archivo PDF no encontrado",
+				expectedPath: pdf.filePath,
+				filename: pdf.filename
+			});
 		}
 
 		// Leer el archivo y convertirlo a Base64
 		const pdfBuffer = fs.readFileSync(pdf.filePath);
 		const base64Data = pdfBuffer.toString('base64');
 		
-		console.log(`✅ [PDF BASE64] PDF convertido a Base64: ${pdf.filename}`);
+		console.log(`✅ [PDF BASE64] PDF convertido a Base64: ${pdf.filename} (${pdfBuffer.length} bytes)`);
 		
 		res.json({
 			filename: pdf.filename,
