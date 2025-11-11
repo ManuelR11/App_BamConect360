@@ -65,6 +65,12 @@ app.use((req, res, next) => {
 	next();
 });
 
+// Middleware específico para debuggear rutas API
+app.use("/api/*", (req, res, next) => {
+	console.log(`🔍 API Route Hit: ${req.method} ${req.path}`);
+	next();
+});
+
 // Rate limiting
 const limiter = rateLimit({
 	windowMs: 15 * 60 * 1000, // 15 minutos
@@ -354,17 +360,15 @@ app.get("/api/pdf/:id/data", async (req, res) => {
 	}
 });
 
-// Ruta para obtener un PDF específico (archivo)
-app.get("/api/pdf/:id", async (req, res) => {
+// Ruta para obtener un PDF específico (archivo) - Nueva ruta con extensión
+app.get("/api/pdf/:id.pdf", async (req, res) => {
 	try {
-		console.log(`📥 Ruta PDF llamada con ID: ${req.params.id}`);
 		// Validar que el ID sea válido
 		if (
 			!req.params.id ||
 			req.params.id === "undefined" ||
 			req.params.id.length !== 24
 		) {
-			console.log(`❌ ID inválido: ${req.params.id}`);
 			return res.status(400).json({ error: "ID de PDF inválido" });
 		}
 
@@ -385,6 +389,46 @@ app.get("/api/pdf/:id", async (req, res) => {
 		res.setHeader("Content-Disposition", `inline; filename="${pdf.filename}"`);
 		res.setHeader("X-Frame-Options", "SAMEORIGIN");
 		res.setHeader("Cache-Control", "public, max-age=3600");
+		res.setHeader("Access-Control-Allow-Origin", "*");
+
+		// Servir el archivo PDF real
+		res.sendFile(path.resolve(pdf.filePath));
+	} catch (error) {
+		console.error("Error obteniendo PDF:", error);
+		res.status(500).json({ error: "Error obteniendo el PDF" });
+	}
+});
+
+// Ruta para obtener un PDF específico (archivo) - Ruta original como backup
+app.get("/api/pdf/:id", async (req, res) => {
+	try {
+		// Validar que el ID sea válido
+		if (
+			!req.params.id ||
+			req.params.id === "undefined" ||
+			req.params.id.length !== 24
+		) {
+			return res.status(400).json({ error: "ID de PDF inválido" });
+		}
+
+		const pdf = await PDFContent.findById(req.params.id);
+		if (!pdf || !pdf.isActive) {
+			return res.status(404).json({ error: "PDF no encontrado" });
+		}
+
+		// Verificar si el archivo PDF existe
+		if (!pdf.filePath || !fs.existsSync(pdf.filePath)) {
+			return res
+				.status(404)
+				.json({ error: "Archivo PDF no encontrado en el servidor" });
+		}
+
+		// Configurar headers para mostrar PDF en el navegador
+		res.setHeader("Content-Type", "application/pdf");
+		res.setHeader("Content-Disposition", `inline; filename="${pdf.filename}"`);
+		res.setHeader("X-Frame-Options", "SAMEORIGIN");
+		res.setHeader("Cache-Control", "public, max-age=3600");
+		res.setHeader("Access-Control-Allow-Origin", "*");
 
 		// Servir el archivo PDF real
 		res.sendFile(path.resolve(pdf.filePath));
