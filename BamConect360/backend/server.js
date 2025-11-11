@@ -446,6 +446,7 @@ const servePdfAsBase64 = async (req, res) => {
 						const idMapping = {
 							"6913814a8717b6e77a788616": "pdf-1762839910147-424431997.pdf", // Pago de Servicios
 							"6913815c8717b6e77a788622": "pdf-1762839890353-607425718.pdf", // Solicitud de Tarjeta
+							"6913813b8717b6e77a78860e": "pdf-1762839917088-443931258.pdf", // Manual de apertura de cuenta
 							// Agregar más IDs según sea necesario
 						};
 
@@ -537,9 +538,9 @@ const servePdfAsBase64 = async (req, res) => {
 		console.log(`📝 [PDF BASE64] Palabras clave esperadas: ${keywords.join(', ')}`);
 		console.log(`✅ [PDF BASE64] Contenido coincide: ${contentMatches}`);
 
-		// Si el contenido no coincide, pero tenemos el archivo correcto según el mapeo, usar igual
-		base64Data = pdfBuffer.toString("base64");
-		fileSize = pdfBuffer.length;
+		// Convertir el archivo a Base64
+		const base64Data = pdfBuffer.toString("base64");
+		const fileSize = pdfBuffer.length;
 
 		if (!contentMatches && pdfText.length > 0) {
 			console.log(`⚠️ [PDF BASE64] ADVERTENCIA: El contenido del archivo físico podría no corresponder al título esperado`);
