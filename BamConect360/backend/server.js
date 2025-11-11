@@ -37,6 +37,12 @@ app.use(
 	helmet({
 		contentSecurityPolicy: {
 			directives: {
+				"default-src": ["'self'"],
+				"frame-src": ["'self'", "data:"],
+				"object-src": ["'none'"],
+				"script-src": ["'self'", "'unsafe-inline'"],
+				"style-src": ["'self'", "'unsafe-inline'"],
+				"img-src": ["'self'", "data:", "https:"],
 				"frame-ancestors": [
 					"'self'",
 					"http://localhost:5173",
