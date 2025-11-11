@@ -249,6 +249,7 @@ app.get("/api/pdf/:id", servePdfDocument);
 // Servir archivos estáticos del frontend después de exponer las rutas de PDF
 app.use(express.static(frontendPath));
 
+
 // Conectar a MongoDB
 const mongoUri =
 	process.env.MONGODB_URI || "mongodb://localhost:27017/bamconect360";
