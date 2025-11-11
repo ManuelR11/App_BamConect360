@@ -388,76 +388,78 @@ const servePdfAsBase64 = async (req, res) => {
 				);
 
 				if (availableFiles.length > 0) {
-					// Mapeo inteligente basado en el nombre del archivo
-					const targetName = pdf.filename
-						.toLowerCase()
-						.replace(/\s+/g, "")
-						.replace(/\.pdf$/, "");
 					console.log(
-						`🔍 [PDF BASE64] Buscando coincidencia para: "${pdf.filename}" -> "${targetName}"`
+						`🔍 [PDF BASE64] Iniciando mapeo inteligente para: "${pdf.filename}" (ID: ${pdf._id})`
 					);
 
-					// Buscar archivo que coincida por nombre
+					// PRIORIDAD 1: Mapeo específico por ID (más confiable)
+					const idMapping = {
+						"6913814a8717b6e77a788616": "pdf-1762839910147-424431997.pdf", // Pago de Servicios
+						"6913815c8717b6e77a788622": "pdf-1762839890353-607425718.pdf", // Solicitud de Tarjeta
+						"6913813b8717b6e77a78860e": "pdf-1762839917088-443931258.pdf", // Manual de apertura de cuenta
+					};
+
+					// PRIORIDAD 2: Mapeo específico por nombre
+					const specificMapping = {
+						"Solicitud de Tarjeta.pdf": "pdf-1762839890353-607425718.pdf", // Tarjetas
+						"Solicitud de Prestamos.pdf": "pdf-1762839898137-325926996.pdf", // Préstamos
+						"Pago de Servicios.pdf": "pdf-1762839910147-424431997.pdf", // Servicios
+						"Gestión de Chequeras.pdf": "pdf-1762839882812-24906428.pdf", // Chequeras (original)
+						"Manual de apertura de cuenta ejemplo.pdf": "pdf-1762839917088-443931258.pdf", // Apertura
+					};
+
 					let matchingFile = null;
 
-					// 1. Buscar coincidencia exacta o muy similar
-					for (const file of availableFiles) {
-						const cleanFileName = file
-							.toLowerCase()
-							.replace(/pdf-\d+-\d+\.pdf$/, "")
-							.replace(/\s+/g, "");
-
-						// Verificar múltiples criterios de coincidencia
-						const nameMatch =
-							cleanFileName.includes(targetName) ||
-							targetName.includes(cleanFileName);
-						const partialMatch =
-							targetName.length > 10 &&
-							cleanFileName.includes(targetName.substring(0, 10));
-						const reverseMatch =
-							cleanFileName.length > 10 &&
-							targetName.includes(cleanFileName.substring(0, 10));
-
-						if (nameMatch || partialMatch || reverseMatch) {
-							matchingFile = file;
-							console.log(
-								`🎯 [PDF BASE64] Coincidencia encontrada: "${file}" matches "${pdf.filename}"`
-							);
-							break;
-						}
+					// 1. PRIORIDAD MÁXIMA: Buscar por ID específico
+					if (idMapping[pdf._id.toString()] && availableFiles.includes(idMapping[pdf._id.toString()])) {
+						matchingFile = idMapping[pdf._id.toString()];
+						console.log(
+							`🎯 [PDF BASE64] Mapeo por ID encontrado: ${pdf._id} -> ${matchingFile}`
+						);
+					}
+					// 2. SEGUNDA PRIORIDAD: Buscar por nombre específico
+					else if (specificMapping[pdf.filename] && availableFiles.includes(specificMapping[pdf.filename])) {
+						matchingFile = specificMapping[pdf.filename];
+						console.log(
+							`🎯 [PDF BASE64] Mapeo por nombre encontrado: "${pdf.filename}" -> ${matchingFile}`
+						);
+					}
+					// 3. BUSQUEDA POR COINCIDENCIA DE NOMBRE (solo si no hay mapeo específico)
+					else {
+						console.log(`⚠️ [PDF BASE64] No hay mapeo específico disponible para: ${pdf.filename} (ID: ${pdf._id})`);
 					}
 
-					// 2. Si no hay coincidencia, mapear por índice específico basado en patrones conocidos
+					// 4. Si aún no hay coincidencia, usar lógica de fallback
 					if (!matchingFile) {
 						console.log(
-							`⚠️ [PDF BASE64] Sin coincidencia directa, usando mapeo por patrón`
+							`⚠️ [PDF BASE64] Sin mapeo específico, usando lógica de fallback`
 						);
-
-						// Mapeo específico CORREGIDO - cada PDF debe tener su propio archivo único
-						const specificMapping = {
-							"Solicitud de Tarjeta.pdf": "pdf-1762839890353-607425718.pdf", // Tarjetas
-							"Solicitud de Prestamos.pdf": "pdf-1762839898137-325926996.pdf", // Préstamos
-							"Pago de Servicios.pdf": "pdf-1762839910147-424431997.pdf", // Servicios
-							"Gestión de Chequeras.pdf": "pdf-1762839882812-24906428.pdf", // Chequeras (original)
-							"Manual de apertura de cuenta ejemplo.pdf": "pdf-1762839917088-443931258.pdf", // Apertura
-						};
-
-						// También mapear por ID específico para mayor precisión
-						const idMapping = {
-							"6913814a8717b6e77a788616": "pdf-1762839910147-424431997.pdf", // Pago de Servicios
-							"6913815c8717b6e77a788622": "pdf-1762839890353-607425718.pdf", // Solicitud de Tarjeta
-							"6913813b8717b6e77a78860e": "pdf-1762839917088-443931258.pdf", // Manual de apertura de cuenta
-							// Agregar más IDs según sea necesario
-						};
-
-						// Buscar mapeo específico por ID primero, luego por nombre
-						matchingFile = idMapping[pdf._id.toString()] || specificMapping[pdf.filename];
 						
-						if (matchingFile && availableFiles.includes(matchingFile)) {
-							console.log(
-								`🎯 [PDF BASE64] Mapeo específico encontrado: ${pdf.filename} (ID: ${pdf._id}) -> ${matchingFile}`
-							);
-						} else {
+						// Mapeo por patrón de nombre como última opción
+						const targetName = pdf.filename
+							.toLowerCase()
+							.replace(/\s+/g, "")
+							.replace(/\.pdf$/, "");
+
+						for (const file of availableFiles) {
+							const cleanFileName = file
+								.toLowerCase()
+								.replace(/pdf-\d+-\d+\.pdf$/, "")
+								.replace(/\s+/g, "");
+
+							// Verificar criterios de coincidencia más estrictos
+							const nameMatch = cleanFileName.includes(targetName) && targetName.length > 8;
+							
+							if (nameMatch) {
+								matchingFile = file;
+								console.log(
+									`🔀 [PDF BASE64] Fallback - coincidencia encontrada: "${file}" matches "${pdf.filename}"`
+								);
+								break;
+							}
+						}
+						
+						if (!matchingFile) {
 							// Si no hay mapeo específico, usar lógica de patrones
 							if (pdf.filename.toLowerCase().includes("apertura")) {
 								matchingFile = availableFiles.find((f) => f.includes("1762839910147")) || availableFiles[3] || availableFiles[0];
