@@ -608,16 +608,51 @@ export default function PDFViewer() {
 								background: "#f8fafc",
 							}}
 						>
-							<iframe
-								src={`${window.location.origin}/documents/${pdfData._id}`}
-								style={{
-									width: "100%",
-									height: "600px",
-									border: "none",
-									display: "block",
-								}}
-								title={`PDF: ${filename}`}
-							/>
+							<div style={{
+								display: "flex",
+								flexDirection: "column",
+								alignItems: "center",
+								gap: "16px",
+								padding: "32px",
+								border: "2px dashed #d1d5db",
+								borderRadius: "12px",
+								background: "#f9fafb"
+							}}>
+								<p style={{ 
+									fontSize: "16px", 
+									color: "#6b7280",
+									textAlign: "center",
+									margin: 0
+								}}>
+									📄 El PDF está listo para visualizar
+								</p>
+								<button
+									onClick={() => {
+										const pdfUrl = `${window.location.origin}/documents/${pdfData._id}`;
+										console.log("🔗 Abriendo PDF directamente:", pdfUrl);
+										window.open(pdfUrl, "_blank", "noopener,noreferrer");
+									}}
+									style={{
+										background: "linear-gradient(135deg, #10b981, #059669)",
+										color: "white",
+										padding: "16px 32px",
+										borderRadius: "8px",
+										border: "none",
+										cursor: "pointer",
+										fontSize: "18px",
+										fontWeight: "600",
+										transition: "all 0.3s ease",
+									}}
+									onMouseEnter={(e) => {
+										e.target.style.transform = "scale(1.05)";
+									}}
+									onMouseLeave={(e) => {
+										e.target.style.transform = "scale(1)";
+									}}
+								>
+									🔗 Abrir PDF
+								</button>
+							</div>
 						</div>
 					</div>
 

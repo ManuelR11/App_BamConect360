@@ -65,6 +65,51 @@ app.use((req, res, next) => {
 	next();
 });
 
+// ⚡ SUPER IMPORTANTE: Ruta de documentos PDF - PRIMERA PRIORIDAD
+app.get("/documents/:id", async (req, res) => {
+	try {
+		console.log(`📄 [EARLY] Solicitud de documento: ${req.params.id}`);
+		
+		// Validar que el ID sea válido
+		if (
+			!req.params.id ||
+			req.params.id === "undefined" ||
+			req.params.id.length !== 24
+		) {
+			console.log(`❌ [EARLY] ID inválido: ${req.params.id}`);
+			return res.status(400).json({ error: "ID de PDF inválido" });
+		}
+
+		const pdf = await PDFContent.findById(req.params.id);
+		if (!pdf || !pdf.isActive) {
+			console.log(`❌ [EARLY] PDF no encontrado: ${req.params.id}`);
+			return res.status(404).json({ error: "PDF no encontrado" });
+		}
+
+		// Verificar si el archivo PDF existe
+		if (!pdf.filePath || !fs.existsSync(pdf.filePath)) {
+			console.log(`❌ [EARLY] Archivo no existe: ${pdf.filePath}`);
+			return res
+				.status(404)
+				.json({ error: "Archivo PDF no encontrado en el servidor" });
+		}
+
+		// Configurar headers para mostrar PDF en el navegador
+		res.setHeader("Content-Type", "application/pdf");
+		res.setHeader("Content-Disposition", `inline; filename="${pdf.filename}"`);
+		res.setHeader("X-Frame-Options", "SAMEORIGIN");
+		res.setHeader("Cache-Control", "public, max-age=3600");
+		res.setHeader("Access-Control-Allow-Origin", "*");
+
+		console.log(`✅ [EARLY] Sirviendo PDF: ${pdf.filename} desde ${pdf.filePath}`);
+		// Servir el archivo PDF real
+		res.sendFile(path.resolve(pdf.filePath));
+	} catch (error) {
+		console.error("❌ [EARLY] Error sirviendo documento:", error);
+		res.status(500).json({ error: "Error obteniendo el PDF" });
+	}
+});
+
 // Middleware específico para debuggear rutas API
 app.use("/api/*", (req, res, next) => {
 	console.log(`🔍 API Route Hit: ${req.method} ${req.path}`);
@@ -115,48 +160,6 @@ app.get("/sw.js", (req, res) => {
 	res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
 	res.setHeader("Service-Worker-Allowed", "/");
 	res.sendFile(path.join(frontendPath, "sw.js"));
-});
-
-// IMPORTANTE: Ruta para documentos PDF - DEBE ir antes de express.static
-app.get("/documents/:id", async (req, res) => {
-	try {
-		console.log(`📄 Solicitud de documento: ${req.params.id}`);
-		
-		// Validar que el ID sea válido
-		if (
-			!req.params.id ||
-			req.params.id === "undefined" ||
-			req.params.id.length !== 24
-		) {
-			return res.status(400).json({ error: "ID de PDF inválido" });
-		}
-
-		const pdf = await PDFContent.findById(req.params.id);
-		if (!pdf || !pdf.isActive) {
-			return res.status(404).json({ error: "PDF no encontrado" });
-		}
-
-		// Verificar si el archivo PDF existe
-		if (!pdf.filePath || !fs.existsSync(pdf.filePath)) {
-			return res
-				.status(404)
-				.json({ error: "Archivo PDF no encontrado en el servidor" });
-		}
-
-		// Configurar headers para mostrar PDF en el navegador
-		res.setHeader("Content-Type", "application/pdf");
-		res.setHeader("Content-Disposition", `inline; filename="${pdf.filename}"`);
-		res.setHeader("X-Frame-Options", "SAMEORIGIN");
-		res.setHeader("Cache-Control", "public, max-age=3600");
-		res.setHeader("Access-Control-Allow-Origin", "*");
-
-		console.log(`✅ Sirviendo PDF: ${pdf.filename}`);
-		// Servir el archivo PDF real
-		res.sendFile(path.resolve(pdf.filePath));
-	} catch (error) {
-		console.error("Error sirviendo documento:", error);
-		res.status(500).json({ error: "Error obteniendo el PDF" });
-	}
 });
 
 app.use(express.static(frontendPath));
