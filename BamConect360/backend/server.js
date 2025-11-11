@@ -426,7 +426,6 @@ const servePdfAsBase64 = async (req, res) => {
 				});
 			}
 		}
-		}
 
 		console.log(`✅ [PDF BASE64] Archivo confirmado: ${targetFilePath}`);
 
