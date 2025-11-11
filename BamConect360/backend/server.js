@@ -321,21 +321,49 @@ const servePdfAsBase64 = async (req, res) => {
 				)}`
 			);
 
-			// Mapeo manual basado en el nombre del PDF solicitado
+			// Mapeo inteligente basado en el nombre del PDF solicitado
 			const filename = pdf.filename.toLowerCase();
-			if (filename.includes("apertura") || filename.includes("cuenta")) {
-				// Para "Manual de apertura de cuenta ejemplo.pdf", usar el archivo más reciente
-				targetFilePath = path.join(uploadsDir, sortedFiles[0]);
+			let selectedFile = null;
+			
+			// Mapeo específico por nombre de archivo
+			const mappings = [
+				{ keywords: ["apertura", "cuenta"], files: sortedFiles },
+				{ keywords: ["solicitud", "tarjeta"], files: sortedFiles },
+				{ keywords: ["chequeras", "cheque"], files: sortedFiles },
+				{ keywords: ["credito", "crédito"], files: sortedFiles },
+				{ keywords: ["transferencia"], files: sortedFiles },
+				{ keywords: ["deposito", "depósito"], files: sortedFiles },
+				{ keywords: ["retiro"], files: sortedFiles },
+				{ keywords: ["consulta"], files: sortedFiles }
+			];
+			
+			// Buscar mapeo por palabras clave
+			for (const mapping of mappings) {
+				if (mapping.keywords.some(keyword => filename.includes(keyword))) {
+					// Para cada tipo, usar un archivo diferente basado en el índice
+					const mappingIndex = mappings.findIndex(m => m === mapping);
+					selectedFile = sortedFiles[mappingIndex % sortedFiles.length];
+					console.log(
+						`🎯 [PDF BASE64] Mapeando "${pdf.filename}" (${mapping.keywords.join('/')}) a: ${selectedFile}`
+					);
+					break;
+				}
+			}
+			
+			// Si no se encuentra mapeo específico, usar distribución por hash
+			if (!selectedFile) {
+				const hash = pdf.filename.split('').reduce((a, b) => {
+					a = ((a << 5) - a) + b.charCodeAt(0);
+					return a & a;
+				}, 0);
+				const index = Math.abs(hash) % sortedFiles.length;
+				selectedFile = sortedFiles[index];
 				console.log(
-					`🎯 [PDF BASE64] Mapeando "apertura de cuenta" a: ${sortedFiles[0]}`
-				);
-			} else {
-				// Para otros archivos, usar el primero disponible
-				targetFilePath = path.join(uploadsDir, sortedFiles[0]);
-				console.log(
-					`� [PDF BASE64] Usando archivo por defecto: ${sortedFiles[0]}`
+					`🎲 [PDF BASE64] Usando mapeo por hash para "${pdf.filename}": ${selectedFile} (índice ${index})`
 				);
 			}
+			
+			targetFilePath = path.join(uploadsDir, selectedFile);
 		}
 
 		// Verificar que el archivo existe
