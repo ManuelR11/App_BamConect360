@@ -83,6 +83,114 @@ app.use(limiter);
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
+// Esquema de MongoDB para almacenar el contenido de los PDFs
+const pdfContentSchema = new mongoose.Schema({
+	filename: {
+		type: String,
+		required: true,
+	},
+	content: {
+		type: String,
+		required: true,
+	},
+	filePath: {
+		type: String,
+		required: true,
+	},
+	uploadDate: {
+		type: Date,
+		default: Date.now,
+	},
+	isActive: {
+		type: Boolean,
+		default: true,
+	},
+	ratings: [
+		{
+			rating: {
+				type: Number,
+				min: 1,
+				max: 5,
+				required: true,
+			},
+			timestamp: {
+				type: Date,
+				default: Date.now,
+			},
+			// En una implementación real, podrías agregar userIP o userId
+			userIP: String,
+		},
+	],
+	averageRating: {
+		type: Number,
+		default: 0,
+	},
+	totalRatings: {
+		type: Number,
+		default: 0,
+	},
+});
+
+const PDFContent = mongoose.model("PDFContent", pdfContentSchema);
+
+// Funciones para servir PDFs
+const isValidPdfId = (id) => id && id !== "undefined" && id.length === 24;
+
+const servePdfDocument = async (req, res) => {
+	const { id } = req.params;
+	console.log(`🔥 [PDF ROUTE HIT] ID: ${id}`);
+
+	try {
+		if (!isValidPdfId(id)) {
+			console.log(`❌ [PDF ROUTE] ID inválido: ${id}`);
+			return res.status(400).json({ error: "ID de PDF inválido" });
+		}
+
+		const pdf = await PDFContent.findById(id);
+		if (!pdf || !pdf.isActive) {
+			console.log(`❌ [PDF ROUTE] PDF no encontrado: ${id}`);
+			return res.status(404).json({ error: "PDF no encontrado" });
+		}
+
+		console.log(`🔍 [PDF ROUTE] Verificando archivo en: ${pdf.filePath}`);
+		console.log(`🔍 [PDF ROUTE] Archivo existe: ${fs.existsSync(pdf.filePath)}`);
+		
+		if (!pdf.filePath || !fs.existsSync(pdf.filePath)) {
+			console.log(`❌ [PDF ROUTE] Archivo no existe: ${pdf.filePath}`);
+			console.log(`📁 [PDF ROUTE] Contenido del directorio uploads:`);
+			try {
+				const uploadsDir = path.join(__dirname, 'uploads');
+				console.log(`📁 [PDF ROUTE] Directorio uploads: ${uploadsDir}`);
+				console.log(`📁 [PDF ROUTE] Existe directorio: ${fs.existsSync(uploadsDir)}`);
+				if (fs.existsSync(uploadsDir)) {
+					const files = fs.readdirSync(uploadsDir);
+					console.log(`📁 [PDF ROUTE] Archivos en uploads: ${files.length} archivos`);
+					files.forEach(file => console.log(`  - ${file}`));
+				}
+			} catch (dirError) {
+				console.log(`❌ [PDF ROUTE] Error leyendo directorio: ${dirError.message}`);
+			}
+			return res
+				.status(404)
+				.json({ error: "Archivo PDF no encontrado en el servidor" });
+		}
+
+		res.setHeader("Content-Type", "application/pdf");
+		res.setHeader("Content-Disposition", `inline; filename="${pdf.filename}"`);
+		res.setHeader("X-Frame-Options", "SAMEORIGIN");
+		res.setHeader("Cache-Control", "public, max-age=3600");
+		res.setHeader("Access-Control-Allow-Origin", "*");
+
+		console.log(
+			`✅ [PDF ROUTE] Sirviendo PDF: ${pdf.filename} desde ${pdf.filePath}`
+		);
+		res.sendFile(path.resolve(pdf.filePath));
+	} catch (error) {
+		console.error("❌ [PDF ROUTE] Error sirviendo documento:", error);
+		res.status(500).json({ error: "Error obteniendo el PDF" });
+	}
+};
+
 // ⚠️ RUTAS CRÍTICAS DE PDF - DEBEN ESTAR ANTES DE LOS ARCHIVOS ESTÁTICOS
 app.get("/documents/test", (req, res) => {
 	console.log("🧪 [PDF ROUTE] Test de documentos funcionando");
@@ -160,112 +268,9 @@ const upload = multer({
 	},
 });
 
-// Esquema de MongoDB para almacenar el contenido de los PDFs
-const pdfContentSchema = new mongoose.Schema({
-	filename: {
-		type: String,
-		required: true,
-	},
-	content: {
-		type: String,
-		required: true,
-	},
-	filePath: {
-		type: String,
-		required: true,
-	},
-	uploadDate: {
-		type: Date,
-		default: Date.now,
-	},
-	isActive: {
-		type: Boolean,
-		default: true,
-	},
-	ratings: [
-		{
-			rating: {
-				type: Number,
-				min: 1,
-				max: 5,
-				required: true,
-			},
-			timestamp: {
-				type: Date,
-				default: Date.now,
-			},
-			// En una implementación real, podrías agregar userIP o userId
-			userIP: String,
-		},
-	],
-	averageRating: {
-		type: Number,
-		default: 0,
-	},
-	totalRatings: {
-		type: Number,
-		default: 0,
-	},
-});
 
-const PDFContent = mongoose.model("PDFContent", pdfContentSchema);
 
-const isValidPdfId = (id) => id && id !== "undefined" && id.length === 24;
 
-const servePdfDocument = async (req, res) => {
-	const { id } = req.params;
-	console.log(`🔥 [PDF ROUTE HIT] ID: ${id}`);
-
-	try {
-		if (!isValidPdfId(id)) {
-			console.log(`❌ [PDF ROUTE] ID inválido: ${id}`);
-			return res.status(400).json({ error: "ID de PDF inválido" });
-		}
-
-		const pdf = await PDFContent.findById(id);
-		if (!pdf || !pdf.isActive) {
-			console.log(`❌ [PDF ROUTE] PDF no encontrado: ${id}`);
-			return res.status(404).json({ error: "PDF no encontrado" });
-		}
-
-		console.log(`🔍 [PDF ROUTE] Verificando archivo en: ${pdf.filePath}`);
-		console.log(`🔍 [PDF ROUTE] Archivo existe: ${fs.existsSync(pdf.filePath)}`);
-		
-		if (!pdf.filePath || !fs.existsSync(pdf.filePath)) {
-			console.log(`❌ [PDF ROUTE] Archivo no existe: ${pdf.filePath}`);
-			console.log(`📁 [PDF ROUTE] Contenido del directorio uploads:`);
-			try {
-				const uploadsDir = path.join(__dirname, 'uploads');
-				console.log(`📁 [PDF ROUTE] Directorio uploads: ${uploadsDir}`);
-				console.log(`📁 [PDF ROUTE] Existe directorio: ${fs.existsSync(uploadsDir)}`);
-				if (fs.existsSync(uploadsDir)) {
-					const files = fs.readdirSync(uploadsDir);
-					console.log(`📁 [PDF ROUTE] Archivos en uploads: ${files.length} archivos`);
-					files.forEach(file => console.log(`  - ${file}`));
-				}
-			} catch (dirError) {
-				console.log(`❌ [PDF ROUTE] Error leyendo directorio: ${dirError.message}`);
-			}
-			return res
-				.status(404)
-				.json({ error: "Archivo PDF no encontrado en el servidor" });
-		}
-
-		res.setHeader("Content-Type", "application/pdf");
-		res.setHeader("Content-Disposition", `inline; filename="${pdf.filename}"`);
-		res.setHeader("X-Frame-Options", "SAMEORIGIN");
-		res.setHeader("Cache-Control", "public, max-age=3600");
-		res.setHeader("Access-Control-Allow-Origin", "*");
-
-		console.log(
-			`✅ [PDF ROUTE] Sirviendo PDF: ${pdf.filename} desde ${pdf.filePath}`
-		);
-		res.sendFile(path.resolve(pdf.filePath));
-	} catch (error) {
-		console.error("❌ [PDF ROUTE] Error sirviendo documento:", error);
-		res.status(500).json({ error: "Error obteniendo el PDF" });
-	}
-};
 
 
 
