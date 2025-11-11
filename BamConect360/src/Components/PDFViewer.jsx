@@ -21,6 +21,7 @@ export default function PDFViewer() {
 	const [totalRatings, setTotalRatings] = useState(0);
 	const [showRatingSuccess, setShowRatingSuccess] = useState(false);
 	const [iframeError, setIframeError] = useState(false);
+	const [isBrave, setIsBrave] = useState(false);
 
 	useEffect(() => {
 		// Obtener el nombre del archivo desde la URL
@@ -33,6 +34,16 @@ export default function PDFViewer() {
 		} else {
 			setError("No se especificó ningún archivo PDF");
 			setLoading(false);
+		}
+
+		// Detectar si es Brave
+		if (navigator.brave && navigator.brave.isBrave) {
+			navigator.brave.isBrave().then((isBrave) => {
+				setIsBrave(isBrave);
+				if (isBrave) {
+					console.log("🦁 Navegador Brave detectado - usando configuración optimizada");
+				}
+			});
 		}
 	}, []);
 
@@ -634,6 +645,30 @@ export default function PDFViewer() {
 							</a>
 						</div>
 
+						{/* Banner específico para Brave */}
+						{isBrave && (
+							<div
+								style={{
+									background: "linear-gradient(135deg, #ff6b35, #f7931e)",
+									color: "white",
+									padding: "12px 16px",
+									borderRadius: "8px",
+									marginBottom: "16px",
+									display: "flex",
+									alignItems: "center",
+									gap: "12px",
+									fontSize: "14px",
+								}}
+							>
+								<span style={{ fontSize: "20px" }}>🦁</span>
+								<div>
+									<strong>Navegador Brave detectado:</strong> Si el PDF no se muestra, 
+									puedes usar el botón "Abrir en nueva pestaña" o ajustar la configuración 
+									de privacidad de Brave (Configuración → Privacidad → Configuración de sitio).
+								</div>
+							</div>
+						)}
+
 						<div
 							style={{
 								border: "2px solid #e5e7eb",
@@ -703,32 +738,74 @@ export default function PDFViewer() {
 									</button>
 								</div>
 							) : (
-								<iframe
-									src={pdfBase64}
-									onLoad={() => {
-										console.log(
-											"📄 PDF cargado en iframe:",
-											pdfBase64 ? "Base64 Data URL" : "Sin Base64"
-										);
-										setIframeError(false);
-									}}
-									onError={() => {
-										console.error(
-											"❌ Error cargando PDF en iframe:",
-											pdfBase64 ? "Base64 Data URL" : "Sin Base64"
-										);
-										setIframeError(true);
-									}}
-									style={{
-										width: "100%",
-										height: "600px",
-										border: "none",
-										display: "block",
-									}}
-									title={`PDF: ${filename}`}
-									allow="fullscreen"
-									sandbox="allow-same-origin"
-								/>
+								<>
+									{/* Intento con object tag - más compatible con Brave */}
+									<object
+										data={pdfBase64}
+										type="application/pdf"
+										style={{
+											width: "100%",
+											height: "600px",
+											border: "none",
+											display: "block",
+										}}
+										onLoad={() => {
+											console.log("📄 PDF cargado en object:", "Base64 Data URL");
+											setIframeError(false);
+										}}
+										onError={() => {
+											console.error("❌ Error cargando PDF en object");
+											setIframeError(true);
+										}}
+									>
+										{/* Fallback: iframe si object falla */}
+										<iframe
+											src={pdfBase64}
+											style={{
+												width: "100%",
+												height: "600px",
+												border: "none",
+												display: "block",
+											}}
+											title={`PDF: ${filename}`}
+											onLoad={() => {
+												console.log("📄 PDF cargado en iframe fallback");
+												setIframeError(false);
+											}}
+											onError={() => {
+												console.error("❌ Error en iframe fallback");
+												setIframeError(true);
+											}}
+										/>
+										{/* Fallback final: enlace de descarga */}
+										<div
+											style={{
+												padding: "20px",
+												textAlign: "center",
+												background: "#f8fafc",
+												border: "2px dashed #e2e8f0",
+												borderRadius: "8px",
+											}}
+										>
+											<p>No se puede mostrar el PDF en este navegador.</p>
+											<a
+												href={pdfBase64}
+												download={filename}
+												style={{
+													background: "#3b82f6",
+													color: "white",
+													padding: "10px 20px",
+													borderRadius: "6px",
+													textDecoration: "none",
+													display: "inline-block",
+													marginTop: "10px",
+												}}
+											>
+												📥 Descargar PDF
+											</a>
+										</div>
+									</object>
+								</>
 							)}
 						</div>
 					</div>
