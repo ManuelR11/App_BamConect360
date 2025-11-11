@@ -117,12 +117,10 @@ app.get("/sw.js", (req, res) => {
 	res.sendFile(path.join(frontendPath, "sw.js"));
 });
 
-app.use(express.static(frontendPath));
-
 // Crear directorio para uploads si no existe
 const uploadsDir = path.join(__dirname, "uploads");
 if (!fs.existsSync(uploadsDir)) {
-	fs.mkdirSync(uploadsDir, { recursive: true });
+        fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
 // Configuración de multer para subida de archivos
@@ -247,6 +245,10 @@ app.get("/documents/test", (req, res) => {
 
 app.get("/documents/:id", servePdfDocument);
 app.get("/api/pdf/:id", servePdfDocument);
+
+// Servir archivos estáticos del frontend después de exponer las rutas de PDF
+app.use(express.static(frontendPath));
+
 
 // Conectar a MongoDB
 const mongoUri =
