@@ -115,13 +115,34 @@ app.use("/api/pdf*", (req, res, next) => {
 	next();
 });
 
-// Rate limiting
+// Rate limiting - configuración permisiva para PWA
 const limiter = rateLimit({
 	windowMs: 15 * 60 * 1000, // 15 minutos
-	max: 100, // máximo 100 requests por ventana por IP
+	max: 1000, // máximo 1000 requests por ventana por IP (aumentado para PWA)
 	message: "Demasiadas solicitudes, intenta de nuevo más tarde.",
+	standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+	legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+	// Excluir archivos estáticos del rate limiting
+	skip: (req, res) => {
+		// No aplicar rate limiting a archivos estáticos comunes
+		const staticFiles = ['/sw.js', '/workbox-', '/assets/', '/icons/', '/favicon', '/manifest.json', '/apple-touch-icon'];
+		return staticFiles.some(path => req.path.includes(path));
+	}
 });
 app.use(limiter);
+
+// Rate limiting específico para APIs críticas (más estricto)
+const apiLimiter = rateLimit({
+	windowMs: 1 * 60 * 1000, // 1 minuto
+	max: 60, // máximo 60 requests por minuto para APIs
+	message: "Demasiadas solicitudes a la API, intenta de nuevo más tarde.",
+	standardHeaders: true,
+	legacyHeaders: false,
+});
+
+// Aplicar rate limiting específico solo a rutas de API sensibles
+app.use('/api/upload', apiLimiter);
+app.use('/api/chat', apiLimiter);
 
 // Middleware para parsing
 app.use(express.json({ limit: "10mb" }));
