@@ -65,59 +65,6 @@ app.use((req, res, next) => {
 	next();
 });
 
-// ⚡ SUPER IMPORTANTE: Ruta de documentos PDF - PRIMERA PRIORIDAD
-app.get("/documents/:id", async (req, res) => {
-	console.log(`🔥 [DOCUMENTS ROUTE HIT] ID: ${req.params.id}`);
-	
-	try {
-		console.log(`📄 [EARLY] Solicitud de documento: ${req.params.id}`);
-		
-		// Validar que el ID sea válido
-		if (
-			!req.params.id ||
-			req.params.id === "undefined" ||
-			req.params.id.length !== 24
-		) {
-			console.log(`❌ [EARLY] ID inválido: ${req.params.id}`);
-			return res.status(400).json({ error: "ID de PDF inválido" });
-		}
-
-		const pdf = await PDFContent.findById(req.params.id);
-		if (!pdf || !pdf.isActive) {
-			console.log(`❌ [EARLY] PDF no encontrado: ${req.params.id}`);
-			return res.status(404).json({ error: "PDF no encontrado" });
-		}
-
-		// Verificar si el archivo PDF existe
-		if (!pdf.filePath || !fs.existsSync(pdf.filePath)) {
-			console.log(`❌ [EARLY] Archivo no existe: ${pdf.filePath}`);
-			return res
-				.status(404)
-				.json({ error: "Archivo PDF no encontrado en el servidor" });
-		}
-
-		// Configurar headers para mostrar PDF en el navegador
-		res.setHeader("Content-Type", "application/pdf");
-		res.setHeader("Content-Disposition", `inline; filename="${pdf.filename}"`);
-		res.setHeader("X-Frame-Options", "SAMEORIGIN");
-		res.setHeader("Cache-Control", "public, max-age=3600");
-		res.setHeader("Access-Control-Allow-Origin", "*");
-
-		console.log(`✅ [EARLY] Sirviendo PDF: ${pdf.filename} desde ${pdf.filePath}`);
-		// Servir el archivo PDF real
-		res.sendFile(path.resolve(pdf.filePath));
-	} catch (error) {
-		console.error("❌ [EARLY] Error sirviendo documento:", error);
-		res.status(500).json({ error: "Error obteniendo el PDF" });
-	}
-});
-
-// Ruta de test para verificar que las rutas funcionan
-app.get("/documents/test", (req, res) => {
-	console.log("🧪 [TEST ROUTE] Ruta de test funcionando");
-	res.json({ message: "Ruta de documentos funcionando correctamente" });
-});
-
 // Middleware específico para debuggear rutas API
 app.use("/api/*", (req, res, next) => {
 	console.log(`🔍 API Route Hit: ${req.method} ${req.path}`);
@@ -170,12 +117,10 @@ app.get("/sw.js", (req, res) => {
 	res.sendFile(path.join(frontendPath, "sw.js"));
 });
 
-app.use(express.static(frontendPath));
-
 // Crear directorio para uploads si no existe
 const uploadsDir = path.join(__dirname, "uploads");
 if (!fs.existsSync(uploadsDir)) {
-	fs.mkdirSync(uploadsDir, { recursive: true });
+        fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
 // Configuración de multer para subida de archivos
@@ -190,17 +135,17 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({
-	storage: storage,
-	limits: {
-		fileSize: 10 * 1024 * 1024, // 10MB máximo
-	},
-	fileFilter: (req, file, cb) => {
-		if (file.mimetype === "application/pdf") {
-			cb(null, true);
-		} else {
-			cb(new Error("Solo se permiten archivos PDF"), false);
-		}
-	},
+        storage: storage,
+        limits: {
+                fileSize: 10 * 1024 * 1024, // 10MB máximo
+        },
+        fileFilter: (req, file, cb) => {
+                if (file.mimetype === "application/pdf") {
+                        cb(null, true);
+                } else {
+                        cb(new Error("Solo se permiten archivos PDF"), false);
+                }
+        },
 });
 
 // Esquema de MongoDB para almacenar el contenido de los PDFs
@@ -252,6 +197,57 @@ const pdfContentSchema = new mongoose.Schema({
 });
 
 const PDFContent = mongoose.model("PDFContent", pdfContentSchema);
+
+const isValidPdfId = (id) => id && id !== "undefined" && id.length === 24;
+
+const servePdfDocument = async (req, res) => {
+        const { id } = req.params;
+        console.log(`🔥 [PDF ROUTE HIT] ID: ${id}`);
+
+        try {
+                if (!isValidPdfId(id)) {
+                        console.log(`❌ [PDF ROUTE] ID inválido: ${id}`);
+                        return res.status(400).json({ error: "ID de PDF inválido" });
+                }
+
+                const pdf = await PDFContent.findById(id);
+                if (!pdf || !pdf.isActive) {
+                        console.log(`❌ [PDF ROUTE] PDF no encontrado: ${id}`);
+                        return res.status(404).json({ error: "PDF no encontrado" });
+                }
+
+                if (!pdf.filePath || !fs.existsSync(pdf.filePath)) {
+                        console.log(`❌ [PDF ROUTE] Archivo no existe: ${pdf.filePath}`);
+                        return res
+                                .status(404)
+                                .json({ error: "Archivo PDF no encontrado en el servidor" });
+                }
+
+                res.setHeader("Content-Type", "application/pdf");
+                res.setHeader("Content-Disposition", `inline; filename="${pdf.filename}"`);
+                res.setHeader("X-Frame-Options", "SAMEORIGIN");
+                res.setHeader("Cache-Control", "public, max-age=3600");
+                res.setHeader("Access-Control-Allow-Origin", "*");
+
+                console.log(`✅ [PDF ROUTE] Sirviendo PDF: ${pdf.filename} desde ${pdf.filePath}`);
+                res.sendFile(path.resolve(pdf.filePath));
+        } catch (error) {
+                console.error("❌ [PDF ROUTE] Error sirviendo documento:", error);
+                res.status(500).json({ error: "Error obteniendo el PDF" });
+        }
+};
+
+// Rutas para servir PDFs directamente desde el backend
+app.get("/documents/test", (req, res) => {
+        console.log("🧪 [PDF ROUTE] Test de documentos funcionando");
+        res.json({ message: "Ruta de documentos funcionando correctamente" });
+});
+
+app.get("/documents/:id", servePdfDocument);
+app.get("/api/pdf/:id", servePdfDocument);
+
+// Servir archivos estáticos del frontend después de exponer las rutas de PDF
+app.use(express.static(frontendPath));
 
 // Conectar a MongoDB
 const mongoUri =
@@ -410,84 +406,6 @@ app.get("/api/pdf/:id/data", async (req, res) => {
 	} catch (error) {
 		console.error("Error obteniendo datos del PDF:", error);
 		res.status(500).json({ error: "Error obteniendo los datos del PDF" });
-	}
-});
-
-// Ruta para obtener un PDF específico (archivo) - Ruta directa sin API
-app.get("/documents/:id", async (req, res) => {
-	try {
-		// Validar que el ID sea válido
-		if (
-			!req.params.id ||
-			req.params.id === "undefined" ||
-			req.params.id.length !== 24
-		) {
-			return res.status(400).json({ error: "ID de PDF inválido" });
-		}
-
-		const pdf = await PDFContent.findById(req.params.id);
-		if (!pdf || !pdf.isActive) {
-			return res.status(404).json({ error: "PDF no encontrado" });
-		}
-
-		// Verificar si el archivo PDF existe
-		if (!pdf.filePath || !fs.existsSync(pdf.filePath)) {
-			return res
-				.status(404)
-				.json({ error: "Archivo PDF no encontrado en el servidor" });
-		}
-
-		// Configurar headers para mostrar PDF en el navegador
-		res.setHeader("Content-Type", "application/pdf");
-		res.setHeader("Content-Disposition", `inline; filename="${pdf.filename}"`);
-		res.setHeader("X-Frame-Options", "SAMEORIGIN");
-		res.setHeader("Cache-Control", "public, max-age=3600");
-		res.setHeader("Access-Control-Allow-Origin", "*");
-
-		// Servir el archivo PDF real
-		res.sendFile(path.resolve(pdf.filePath));
-	} catch (error) {
-		console.error("Error obteniendo PDF:", error);
-		res.status(500).json({ error: "Error obteniendo el PDF" });
-	}
-});
-
-// Ruta para obtener un PDF específico (archivo) - Ruta API original como backup
-app.get("/api/pdf/:id", async (req, res) => {
-	try {
-		// Validar que el ID sea válido
-		if (
-			!req.params.id ||
-			req.params.id === "undefined" ||
-			req.params.id.length !== 24
-		) {
-			return res.status(400).json({ error: "ID de PDF inválido" });
-		}
-
-		const pdf = await PDFContent.findById(req.params.id);
-		if (!pdf || !pdf.isActive) {
-			return res.status(404).json({ error: "PDF no encontrado" });
-		}
-
-		// Verificar si el archivo PDF existe
-		if (!pdf.filePath || !fs.existsSync(pdf.filePath)) {
-			return res
-				.status(404)
-				.json({ error: "Archivo PDF no encontrado en el servidor" });
-		}
-
-		// Configurar headers para mostrar PDF en el navegador
-		res.setHeader("Content-Type", "application/pdf");
-		res.setHeader("Content-Disposition", `inline; filename="${pdf.filename}"`);
-		res.setHeader("X-Frame-Options", "SAMEORIGIN");
-		res.setHeader("Cache-Control", "public, max-age=3600");
-		res.setHeader("Access-Control-Allow-Origin", "*");
-
-		// Servir el archivo PDF real
-		res.sendFile(path.resolve(pdf.filePath));
-	} catch (error) {
-		console.error("Error obteniendo PDF:", error);
-		res.status(500).json({ error: "Error obteniendo el PDF" });
 	}
 });
 
@@ -684,12 +602,7 @@ app.get("*", (req, res) => {
 		return res.status(404).json({ error: "Ruta de API no encontrada" });
 	}
 	
-	if (req.path.startsWith("/documents/")) {
-		console.log(`❌ Ruta de documento no encontrada: ${req.path}`);
-		return res.status(404).json({ error: "Documento no encontrado" });
-	}
-
-	const indexPath = path.join(frontendPath, "index.html");
+        const indexPath = path.join(frontendPath, "index.html");
 	console.log(`📄 Sirviendo index.html desde: ${indexPath}`);
 	console.log(`📄 ¿Archivo existe?`, fs.existsSync(indexPath));
 
