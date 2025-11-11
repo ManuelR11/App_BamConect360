@@ -7,12 +7,6 @@ const API_BASE_URL =
 		? "http://localhost:3001/api"
 		: `${window.location.origin}/api`;
 
-// URL específica para servir PDFs (evita conflictos con React Router)
-const PDF_SERVE_URL =
-	window.location.hostname === "localhost"
-		? "http://localhost:3001/files"
-		: `${window.location.origin}/files`;
-
 export default function PDFViewer() {
 	const [pdfData, setPdfData] = useState(null);
 	const [loading, setLoading] = useState(true);
@@ -609,15 +603,13 @@ export default function PDFViewer() {
 								📁 Visualizador de PDF
 							</h2>
 							<a
-								href={
-									pdfBase64
-										? pdfBase64
-										: `${PDF_SERVE_URL}/${pdfData._id}`
-								}
+								href={pdfBase64 || "#"}
 								target="_blank"
 								rel="noopener noreferrer"
 								style={{
-									background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
+									background: pdfBase64 
+										? "linear-gradient(135deg, #3b82f6, #1d4ed8)"
+										: "linear-gradient(135deg, #9ca3af, #6b7280)",
 									color: "white",
 									padding: "8px 16px",
 									borderRadius: "20px",
@@ -628,6 +620,8 @@ export default function PDFViewer() {
 									alignItems: "center",
 									gap: "6px",
 									transition: "all 0.3s ease",
+									cursor: pdfBase64 ? "pointer" : "not-allowed",
+									opacity: pdfBase64 ? 1 : 0.6,
 								}}
 								onMouseEnter={(e) => {
 									e.target.style.transform = "scale(1.05)";
@@ -636,7 +630,7 @@ export default function PDFViewer() {
 									e.target.style.transform = "scale(1)";
 								}}
 							>
-								🔗 Abrir en nueva pestaña
+								{pdfBase64 ? "🔗 Abrir en nueva pestaña" : "⏳ Preparando descarga..."}
 							</a>
 						</div>
 
@@ -648,7 +642,30 @@ export default function PDFViewer() {
 								background: "#f8fafc",
 							}}
 						>
-							{iframeError ? (
+							{!pdfBase64 ? (
+								<div
+									style={{
+										width: "100%",
+										height: "600px",
+										border: "2px dashed #e2e8f0",
+										borderRadius: "8px",
+										display: "flex",
+										flexDirection: "column",
+										alignItems: "center",
+										justifyContent: "center",
+										background: "#f8fafc",
+										color: "#64748b",
+									}}
+								>
+									<div style={{ fontSize: "48px", marginBottom: "16px" }}>📄</div>
+									<div style={{ fontSize: "18px", fontWeight: "600", marginBottom: "8px" }}>
+										Cargando PDF...
+									</div>
+									<div style={{ textAlign: "center" }}>
+										Convirtiendo a formato visualizable
+									</div>
+								</div>
+							) : iframeError ? (
 								<div
 									style={{
 										width: "100%",
@@ -687,22 +704,18 @@ export default function PDFViewer() {
 								</div>
 							) : (
 								<iframe
-									src={pdfBase64 || `${PDF_SERVE_URL}/${pdfData._id}`}
+									src={pdfBase64}
 									onLoad={() => {
 										console.log(
 											"📄 PDF cargado en iframe:",
-											pdfBase64
-												? "Base64 Data URL"
-												: `${PDF_SERVE_URL}/${pdfData._id}`
+											pdfBase64 ? "Base64 Data URL" : "Sin Base64"
 										);
 										setIframeError(false);
 									}}
 									onError={() => {
 										console.error(
 											"❌ Error cargando PDF en iframe:",
-											pdfBase64
-												? "Base64 Data URL"
-												: `${PDF_SERVE_URL}/${pdfData._id}`
+											pdfBase64 ? "Base64 Data URL" : "Sin Base64"
 										);
 										setIframeError(true);
 									}}
@@ -714,7 +727,7 @@ export default function PDFViewer() {
 									}}
 									title={`PDF: ${filename}`}
 									allow="fullscreen"
-									sandbox="allow-same-origin allow-scripts allow-forms"
+									sandbox="allow-same-origin"
 								/>
 							)}
 						</div>
