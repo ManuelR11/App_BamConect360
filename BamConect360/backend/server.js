@@ -19,7 +19,10 @@ const __dirname = path.dirname(__filename);
 dotenv.config();
 
 // Detectar ambiente automáticamente
-const isProduction = process.env.NODE_ENV === 'production' || process.env.PORT || process.env.RAILWAY_ENVIRONMENT;
+const isProduction =
+	process.env.NODE_ENV === "production" ||
+	process.env.PORT ||
+	process.env.RAILWAY_ENVIRONMENT;
 console.log(`🌍 Environment: ${isProduction ? "production" : "development"}`);
 
 const app = express();
@@ -42,10 +45,13 @@ if (process.env.OPENAI_API_KEY) {
 // Middleware específico para PDFs antes de helmet
 app.use((req, res, next) => {
 	// Si la ruta es para PDF, aplicar headers específicos
-	if (req.path.includes('/pdf') || req.path.includes('.pdf')) {
-		res.setHeader('X-Frame-Options', 'SAMEORIGIN');
-		res.setHeader('X-Content-Type-Options', 'nosniff');
-		res.setHeader('Content-Security-Policy', 'frame-src \'self\' data: blob:; object-src \'self\' data: blob:;');
+	if (req.path.includes("/pdf") || req.path.includes(".pdf")) {
+		res.setHeader("X-Frame-Options", "SAMEORIGIN");
+		res.setHeader("X-Content-Type-Options", "nosniff");
+		res.setHeader(
+			"Content-Security-Policy",
+			"frame-src 'self' data: blob:; object-src 'self' data: blob:;"
+		);
 	}
 	next();
 });
@@ -53,28 +59,30 @@ app.use((req, res, next) => {
 // Middleware de seguridad
 app.use(
 	helmet({
-		contentSecurityPolicy: isProduction ? false : {
-			directives: {
-				"default-src": ["'self'"],
-				"frame-src": ["'self'", "data:", "blob:", "'unsafe-inline'"],
-				"object-src": ["'self'", "data:", "blob:"],
-				"script-src": ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-				"style-src": ["'self'", "'unsafe-inline'"],
-				"img-src": ["'self'", "data:", "blob:", "https:"],
-				"media-src": ["'self'", "data:", "blob:"],
-				"connect-src": ["'self'", "data:", "blob:", "https:"],
-				"font-src": ["'self'", "data:", "https:"],
-				"worker-src": ["'self'", "blob:"],
-				"child-src": ["'self'", "data:", "blob:"],
-				"frame-ancestors": [
-					"'self'",
-					"http://localhost:5173",
-					"http://localhost:5174",
-					"http://localhost:3000",
-					process.env.FRONTEND_URL || "'self'",
-				],
-			},
-		},
+		contentSecurityPolicy: isProduction
+			? false
+			: {
+					directives: {
+						"default-src": ["'self'"],
+						"frame-src": ["'self'", "data:", "blob:", "'unsafe-inline'"],
+						"object-src": ["'self'", "data:", "blob:"],
+						"script-src": ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+						"style-src": ["'self'", "'unsafe-inline'"],
+						"img-src": ["'self'", "data:", "blob:", "https:"],
+						"media-src": ["'self'", "data:", "blob:"],
+						"connect-src": ["'self'", "data:", "blob:", "https:"],
+						"font-src": ["'self'", "data:", "https:"],
+						"worker-src": ["'self'", "blob:"],
+						"child-src": ["'self'", "data:", "blob:"],
+						"frame-ancestors": [
+							"'self'",
+							"http://localhost:5173",
+							"http://localhost:5174",
+							"http://localhost:3000",
+							process.env.FRONTEND_URL || "'self'",
+						],
+					},
+			  },
 		crossOriginEmbedderPolicy: false,
 		crossOriginResourcePolicy: { policy: "cross-origin" },
 	})
@@ -109,9 +117,9 @@ app.use("/api/*", (req, res, next) => {
 // Middleware específico para rutas de PDF que necesitan headers especiales
 app.use("/api/pdf*", (req, res, next) => {
 	// Headers específicos para PDFs y contenido embebido
-	res.setHeader('X-Content-Type-Options', 'nosniff');
-	res.setHeader('X-Frame-Options', 'SAMEORIGIN');
-	res.setHeader('Content-Security-Policy', 'frame-src \'self\' data: blob:');
+	res.setHeader("X-Content-Type-Options", "nosniff");
+	res.setHeader("X-Frame-Options", "SAMEORIGIN");
+	res.setHeader("Content-Security-Policy", "frame-src 'self' data: blob:");
 	next();
 });
 
@@ -125,9 +133,17 @@ const limiter = rateLimit({
 	// Excluir archivos estáticos del rate limiting
 	skip: (req, res) => {
 		// No aplicar rate limiting a archivos estáticos comunes
-		const staticFiles = ['/sw.js', '/workbox-', '/assets/', '/icons/', '/favicon', '/manifest.json', '/apple-touch-icon'];
-		return staticFiles.some(path => req.path.includes(path));
-	}
+		const staticFiles = [
+			"/sw.js",
+			"/workbox-",
+			"/assets/",
+			"/icons/",
+			"/favicon",
+			"/manifest.json",
+			"/apple-touch-icon",
+		];
+		return staticFiles.some((path) => req.path.includes(path));
+	},
 });
 app.use(limiter);
 
@@ -141,8 +157,8 @@ const apiLimiter = rateLimit({
 });
 
 // Aplicar rate limiting específico solo a rutas de API sensibles
-app.use('/api/upload', apiLimiter);
-app.use('/api/chat', apiLimiter);
+app.use("/api/upload", apiLimiter);
+app.use("/api/chat", apiLimiter);
 
 // Middleware para parsing
 app.use(express.json({ limit: "10mb" }));
@@ -268,39 +284,41 @@ const servePdfDocument = async (req, res) => {
 const generateCustomPDFContent = (filename, content) => {
 	// Extraer información del filename para personalizar
 	const titleMap = {
-		'Solicitud de Tarjeta.pdf': {
-			title: 'SOLICITUD DE TARJETA',
-			subtitle: 'Guía y procedimiento bancario',
-			description: 'Proceso completo para solicitar tarjetas de crédito y débito'
+		"Solicitud de Tarjeta.pdf": {
+			title: "SOLICITUD DE TARJETA",
+			subtitle: "Guía y procedimiento bancario",
+			description:
+				"Proceso completo para solicitar tarjetas de crédito y débito",
 		},
-		'Solicitud de Prestamos.pdf': {
-			title: 'SOLICITUD DE PRÉSTAMOS',
-			subtitle: 'Guía y procedimiento bancario', 
-			description: 'Información detallada para solicitudes de préstamos personales'
+		"Solicitud de Prestamos.pdf": {
+			title: "SOLICITUD DE PRÉSTAMOS",
+			subtitle: "Guía y procedimiento bancario",
+			description:
+				"Información detallada para solicitudes de préstamos personales",
 		},
-		'Pago de Servicios.pdf': {
-			title: 'PAGO DE SERVICIOS',
-			subtitle: 'Guía y procedimiento bancario',
-			description: 'Instrucciones para realizar pagos de servicios públicos'
+		"Pago de Servicios.pdf": {
+			title: "PAGO DE SERVICIOS",
+			subtitle: "Guía y procedimiento bancario",
+			description: "Instrucciones para realizar pagos de servicios públicos",
 		},
-		'Gestión de Chequeras.pdf': {
-			title: 'GESTIÓN DE CHEQUERAS',
-			subtitle: 'Guía y procedimiento bancario',
-			description: 'Proceso para solicitar y gestionar chequeras'
+		"Gestión de Chequeras.pdf": {
+			title: "GESTIÓN DE CHEQUERAS",
+			subtitle: "Guía y procedimiento bancario",
+			description: "Proceso para solicitar y gestionar chequeras",
 		},
-		'Manual de apertura de cuenta ejemplo.pdf': {
-			title: 'APERTURA DE CUENTA',
-			subtitle: 'Guía y procedimiento bancario',
-			description: 'Manual completo para abrir cuentas bancarias'
-		}
+		"Manual de apertura de cuenta ejemplo.pdf": {
+			title: "APERTURA DE CUENTA",
+			subtitle: "Guía y procedimiento bancario",
+			description: "Manual completo para abrir cuentas bancarias",
+		},
 	};
-	
+
 	const customInfo = titleMap[filename] || {
-		title: filename.replace('.pdf', '').toUpperCase(),
-		subtitle: 'Guía y procedimiento bancario',
-		description: 'Información bancaria especializada'
+		title: filename.replace(".pdf", "").toUpperCase(),
+		subtitle: "Guía y procedimiento bancario",
+		description: "Información bancaria especializada",
 	};
-	
+
 	console.log(`🎨 [CUSTOM PDF] Generando para: ${customInfo.title}`);
 	return customInfo;
 };
@@ -326,88 +344,150 @@ const servePdfAsBase64 = async (req, res) => {
 
 		// Usar el filePath de la base de datos, pero ajustar para desarrollo/producción
 		let targetFilePath = pdf.filePath;
-		
+
 		console.log(`📂 [PDF BASE64] FilePath original de BD: ${targetFilePath}`);
 
 		// Si estamos en desarrollo local, ajustar la ruta
-		if (!isProduction && targetFilePath.includes('/app/backend/uploads/')) {
+		if (!isProduction && targetFilePath.includes("/app/backend/uploads/")) {
 			// Convertir ruta de producción a ruta de desarrollo local
 			const filename = path.basename(targetFilePath);
-			targetFilePath = path.join(__dirname, 'uploads', filename);
-			console.log(`🔄 [PDF BASE64] Ajustado para desarrollo local: ${targetFilePath}`);
-		} else if (isProduction && !targetFilePath.includes('/app/backend/uploads/')) {
+			targetFilePath = path.join(__dirname, "uploads", filename);
+			console.log(
+				`🔄 [PDF BASE64] Ajustado para desarrollo local: ${targetFilePath}`
+			);
+		} else if (
+			isProduction &&
+			!targetFilePath.includes("/app/backend/uploads/")
+		) {
 			// Convertir ruta de desarrollo a ruta de producción
 			const filename = path.basename(targetFilePath);
 			targetFilePath = `/app/backend/uploads/${filename}`;
-			console.log(`🔄 [PDF BASE64] Ajustado para producción: ${targetFilePath}`);
+			console.log(
+				`🔄 [PDF BASE64] Ajustado para producción: ${targetFilePath}`
+			);
 		}
-		
+
 		console.log(`📂 [PDF BASE64] Usando filePath final: ${targetFilePath}`);
 
 		// Verificar que el archivo existe
 		if (!targetFilePath || !fs.existsSync(targetFilePath)) {
 			console.log(`❌ [PDF BASE64] Archivo no existe: ${targetFilePath}`);
-			
+
 			// MAPEO INTELIGENTE: Buscar archivo que coincida con el nombre del PDF
-			const uploadsDir = path.join(__dirname, "uploads");  
+			const uploadsDir = path.join(__dirname, "uploads");
 			console.log(` [PDF BASE64] Directorio uploads: ${uploadsDir}`);
-			
+
 			try {
-				const availableFiles = fs.readdirSync(uploadsDir).filter(f => f.endsWith('.pdf'));
-				console.log(`📋 [PDF BASE64] Archivos disponibles: ${availableFiles.slice(0, 5).join(', ')}${availableFiles.length > 5 ? '...' : ''}`);
-				
+				const availableFiles = fs
+					.readdirSync(uploadsDir)
+					.filter((f) => f.endsWith(".pdf"));
+				console.log(
+					`📋 [PDF BASE64] Archivos disponibles: ${availableFiles
+						.slice(0, 5)
+						.join(", ")}${availableFiles.length > 5 ? "..." : ""}`
+				);
+
 				if (availableFiles.length > 0) {
 					// Mapeo inteligente basado en el nombre del archivo
-					const targetName = pdf.filename.toLowerCase().replace(/\s+/g, '').replace(/\.pdf$/, '');
-					console.log(`🔍 [PDF BASE64] Buscando coincidencia para: "${pdf.filename}" -> "${targetName}"`);
-					
+					const targetName = pdf.filename
+						.toLowerCase()
+						.replace(/\s+/g, "")
+						.replace(/\.pdf$/, "");
+					console.log(
+						`🔍 [PDF BASE64] Buscando coincidencia para: "${pdf.filename}" -> "${targetName}"`
+					);
+
 					// Buscar archivo que coincida por nombre
 					let matchingFile = null;
-					
+
 					// 1. Buscar coincidencia exacta o muy similar
 					for (const file of availableFiles) {
-						const cleanFileName = file.toLowerCase().replace(/pdf-\d+-\d+\.pdf$/, '').replace(/\s+/g, '');
-						
+						const cleanFileName = file
+							.toLowerCase()
+							.replace(/pdf-\d+-\d+\.pdf$/, "")
+							.replace(/\s+/g, "");
+
 						// Verificar múltiples criterios de coincidencia
-						const nameMatch = cleanFileName.includes(targetName) || targetName.includes(cleanFileName);
-						const partialMatch = targetName.length > 10 && cleanFileName.includes(targetName.substring(0, 10));
-						const reverseMatch = cleanFileName.length > 10 && targetName.includes(cleanFileName.substring(0, 10));
-						
+						const nameMatch =
+							cleanFileName.includes(targetName) ||
+							targetName.includes(cleanFileName);
+						const partialMatch =
+							targetName.length > 10 &&
+							cleanFileName.includes(targetName.substring(0, 10));
+						const reverseMatch =
+							cleanFileName.length > 10 &&
+							targetName.includes(cleanFileName.substring(0, 10));
+
 						if (nameMatch || partialMatch || reverseMatch) {
 							matchingFile = file;
-							console.log(`🎯 [PDF BASE64] Coincidencia encontrada: "${file}" matches "${pdf.filename}"`);
+							console.log(
+								`🎯 [PDF BASE64] Coincidencia encontrada: "${file}" matches "${pdf.filename}"`
+							);
 							break;
 						}
 					}
-					
+
 					// 2. Si no hay coincidencia, mapear por índice específico basado en patrones conocidos
 					if (!matchingFile) {
-						console.log(`⚠️ [PDF BASE64] Sin coincidencia directa, usando mapeo por patrón`);
+						console.log(
+							`⚠️ [PDF BASE64] Sin coincidencia directa, usando mapeo por patrón`
+						);
+
+						// Mapeo específico CORREGIDO - cada PDF debe tener su propio archivo único
+						const specificMapping = {
+							"Solicitud de Tarjeta.pdf": "pdf-1762839890353-607425718.pdf", // Tarjetas
+							"Solicitud de Prestamos.pdf": "pdf-1762839898137-325926996.pdf", // Préstamos
+							"Pago de Servicios.pdf": "pdf-1762839910147-424431997.pdf", // Servicios
+							"Gestión de Chequeras.pdf": "pdf-1762839882812-24906428.pdf", // Chequeras (original)
+							"Manual de apertura de cuenta ejemplo.pdf": "pdf-1762839917088-443931258.pdf", // Apertura
+						};
+
+						// También mapear por ID específico para mayor precisión
+						const idMapping = {
+							"6913814a8717b6e77a788616": "pdf-1762839910147-424431997.pdf", // Pago de Servicios
+							"6913815c8717b6e77a788622": "pdf-1762839890353-607425718.pdf", // Solicitud de Tarjeta
+							// Agregar más IDs según sea necesario
+						};
+
+						// Buscar mapeo específico por ID primero, luego por nombre
+						matchingFile = idMapping[pdf._id.toString()] || specificMapping[pdf.filename];
 						
-						// Mapeo específico para módulos conocidos
-						if (pdf.filename.toLowerCase().includes('apertura')) {
-							// Buscar el archivo de apertura (probablemente el más reciente o específico)
-							matchingFile = availableFiles.find(f => !f.includes('1762839882812')) || availableFiles[0];
-						} else if (pdf.filename.toLowerCase().includes('prestamo') || pdf.filename.toLowerCase().includes('seguimiento')) {
-							matchingFile = availableFiles.find(f => f.includes('prestamo')) || availableFiles[1] || availableFiles[0];
-						} else if (pdf.filename.toLowerCase().includes('manual')) {
-							matchingFile = availableFiles.find(f => f.includes('manual')) || availableFiles[2] || availableFiles[0];
+						if (matchingFile && availableFiles.includes(matchingFile)) {
+							console.log(
+								`🎯 [PDF BASE64] Mapeo específico encontrado: ${pdf.filename} (ID: ${pdf._id}) -> ${matchingFile}`
+							);
 						} else {
-							// Para otros casos, usar distribución secuencial
-							const index = Math.abs(pdf._id.toString().charCodeAt(0)) % availableFiles.length;
-							matchingFile = availableFiles[index];
+							// Si no hay mapeo específico, usar lógica de patrones
+							if (pdf.filename.toLowerCase().includes("apertura")) {
+								matchingFile = availableFiles.find((f) => f.includes("1762839910147")) || availableFiles[3] || availableFiles[0];
+							} else if (pdf.filename.toLowerCase().includes("prestamo") || pdf.filename.toLowerCase().includes("seguimiento")) {
+								matchingFile = availableFiles.find((f) => f.includes("1762839890353")) || availableFiles[1] || availableFiles[0];
+							} else if (pdf.filename.toLowerCase().includes("pago") || pdf.filename.toLowerCase().includes("servicio")) {
+								matchingFile = availableFiles.find((f) => f.includes("1762839898137")) || availableFiles[2] || availableFiles[0];
+							} else if (pdf.filename.toLowerCase().includes("chequera") || pdf.filename.toLowerCase().includes("gestion")) {
+								matchingFile = availableFiles.find((f) => f.includes("1762839882812")) || availableFiles[0];
+							} else {
+								// Para otros casos, usar distribución hash más estable
+								const hash = pdf._id.toString().split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+								const index = hash % availableFiles.length;
+								matchingFile = availableFiles[index];
+							}
+							
+							console.log(
+								`🔀 [PDF BASE64] Usando mapeo por patrón mejorado: ${matchingFile}`
+							);
 						}
-						
-						console.log(`🔀 [PDF BASE64] Usando mapeo por patrón: ${matchingFile}`);
 					}
-					
+
 					if (matchingFile) {
 						targetFilePath = path.join(uploadsDir, matchingFile);
 						console.log(`✅ [PDF BASE64] Archivo mapeado: ${matchingFile}`);
 					} else {
 						// Último recurso: usar el primer archivo
 						targetFilePath = path.join(uploadsDir, availableFiles[0]);
-						console.log(`🚨 [PDF BASE64] Último recurso - usando: ${availableFiles[0]}`);
+						console.log(
+							`🚨 [PDF BASE64] Último recurso - usando: ${availableFiles[0]}`
+						);
 					}
 				} else {
 					return res.status(404).json({
@@ -431,25 +511,39 @@ const servePdfAsBase64 = async (req, res) => {
 
 		// Leer el archivo y convertirlo a Base64
 		const pdfBuffer = fs.readFileSync(targetFilePath);
+
+		// Leer el contenido del archivo físico para verificar correspondencia
+		let pdfText = "";
+		try {
+			const parsedPdf = await pdfParse(pdfBuffer);
+			pdfText = parsedPdf.text.toLowerCase();
+		} catch (parseError) {
+			console.log(`⚠️ [PDF BASE64] No se pudo parsear el PDF para verificación: ${parseError.message}`);
+		}
+
+		// Verificar si el contenido del archivo físico corresponde al título esperado
+		const expectedKeywords = {
+			"Solicitud de Tarjeta.pdf": ["tarjeta", "credito", "debito", "solicitud"],
+			"Solicitud de Prestamos.pdf": ["prestamo", "credito", "financiamiento", "solicitud"],
+			"Pago de Servicios.pdf": ["pago", "servicio", "factura", "recibo"],
+			"Gestión de Chequeras.pdf": ["chequera", "cheque", "talonario", "gestion"],
+			"Manual de apertura de cuenta ejemplo.pdf": ["apertura", "cuenta", "deposito", "cliente"]
+		};
+
+		const keywords = expectedKeywords[pdf.filename] || [];
+		let contentMatches = keywords.some(keyword => pdfText.includes(keyword)) || pdfText.length === 0;
 		
-		// SOLUCIÓN TEMPORAL: Verificar si el contenido corresponde al título
-		// Si no es el archivo correcto, generar respuesta alternativa
-		const shouldGenerateCustomPDF = !pdf.filename.toLowerCase().includes("apertura");
-		
-		let base64Data;
-		let fileSize;
-		
-		if (shouldGenerateCustomPDF) {
-			// Generar PDF básico con título correcto (método simple usando texto)
-			const customContent = generateCustomPDFContent(pdf.filename, pdf.content);
-			console.log(`🎨 [PDF BASE64] Generando contenido personalizado para: ${pdf.filename}`);
-			
-			// Por ahora, usar el archivo base pero con metadata correcta
-			base64Data = pdfBuffer.toString("base64");
-			fileSize = pdfBuffer.length;
-		} else {
-			base64Data = pdfBuffer.toString("base64");
-			fileSize = pdfBuffer.length;
+		console.log(`🔍 [PDF BASE64] Verificación de contenido: ${pdf.filename}`);
+		console.log(`📝 [PDF BASE64] Palabras clave esperadas: ${keywords.join(', ')}`);
+		console.log(`✅ [PDF BASE64] Contenido coincide: ${contentMatches}`);
+
+		// Si el contenido no coincide, pero tenemos el archivo correcto según el mapeo, usar igual
+		base64Data = pdfBuffer.toString("base64");
+		fileSize = pdfBuffer.length;
+
+		if (!contentMatches && pdfText.length > 0) {
+			console.log(`⚠️ [PDF BASE64] ADVERTENCIA: El contenido del archivo físico podría no corresponder al título esperado`);
+			console.log(`📄 [PDF BASE64] Primeras palabras del archivo: ${pdfText.substring(0, 100)}`);
 		}
 
 		console.log(
@@ -457,20 +551,32 @@ const servePdfAsBase64 = async (req, res) => {
 		);
 
 		// Configurar headers específicos para PDFs
-		res.setHeader('Content-Type', 'application/json');
-		res.setHeader('Access-Control-Allow-Origin', '*');
-		res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-		res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-		res.setHeader('X-Content-Type-Options', 'nosniff');
-		res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+		res.setHeader("Content-Type", "application/json");
+		res.setHeader("Access-Control-Allow-Origin", "*");
+		res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+		res.setHeader(
+			"Access-Control-Allow-Headers",
+			"Content-Type, Authorization"
+		);
+		res.setHeader("X-Content-Type-Options", "nosniff");
+		res.setHeader("X-Frame-Options", "SAMEORIGIN");
 
 		res.json({
 			filename: pdf.filename,
 			base64: base64Data,
 			contentType: "application/pdf",
-			// Agregar metadata para identificación
-			customGenerated: shouldGenerateCustomPDF,
-			originalTitle: pdf.filename
+			// Agregar metadata para identificación y debug
+			originalTitle: pdf.filename,
+			mappedFile: path.basename(targetFilePath),
+			contentMatches: contentMatches,
+			fileSize: fileSize,
+			pdfId: pdf._id,
+			debug: {
+				originalPath: pdf.filePath,
+				finalPath: targetFilePath,
+				hasContent: pdfText.length > 0,
+				contentPreview: pdfText.substring(0, 50)
+			}
 		});
 	} catch (error) {
 		console.error("❌ [PDF BASE64] Error:", error);
@@ -497,19 +603,19 @@ app.get("/api/pdf/:id/base64", servePdfAsBase64);
 
 // Ruta de diagnóstico para CSP
 app.get("/api/debug/csp-test", (req, res) => {
-	res.setHeader('Content-Security-Policy', 'frame-src \'self\' data: blob:');
+	res.setHeader("Content-Security-Policy", "frame-src 'self' data: blob:");
 	res.json({
 		environment: isProduction ? "production" : "development",
 		cspDisabled: isProduction,
 		message: "CSP Test - iframe con data: URLs debería funcionar",
 		headers: {
-			'Content-Security-Policy': 'frame-src \'self\' data: blob:',
-			'X-Frame-Options': 'SAMEORIGIN'
-		}
+			"Content-Security-Policy": "frame-src 'self' data: blob:",
+			"X-Frame-Options": "SAMEORIGIN",
+		},
 	});
 });
 
-// Ruta de debug para mapear PDFs
+// Ruta de debug para verificar mapeo correcto
 app.get("/api/debug/pdf-mapping", async (req, res) => {
 	try {
 		console.log("🔍 [DEBUG] Iniciando mapeo de PDFs...");
@@ -518,51 +624,58 @@ app.get("/api/debug/pdf-mapping", async (req, res) => {
 		const uploadsDir = path.join(__dirname, "uploads");
 		const physicalFiles = fs
 			.readdirSync(uploadsDir)
-			.filter((file) => file.endsWith(".pdf"))
-			.map((file) => {
-				const filePath = path.join(uploadsDir, file);
-				const stats = fs.statSync(filePath);
-				const timestamp = file.match(/pdf-(\d+)-/)?.[1];
-				return {
-					filename: file,
-					size: stats.size,
-					created: stats.birthtime,
-					timestamp: timestamp ? new Date(parseInt(timestamp)) : null,
-				};
-			})
-			.sort((a, b) => b.created - a.created);
+			.filter((file) => file.endsWith(".pdf"));
 
 		// Obtener PDFs de la base de datos
 		const dbPdfs = await PDFContent.find({ isActive: true })
-			.select("filename filePath uploadDate")
+			.select("_id filename filePath uploadDate")
 			.sort({ uploadDate: -1 });
 
-		const mapping = {
-			physicalFiles: physicalFiles,
-			databasePdfs: dbPdfs,
-			suggestions: [],
+		// Mapeo específico actualizado
+		const specificMapping = {
+			"Solicitud de Tarjeta.pdf": "pdf-1762839890353-607425718.pdf",
+			"Solicitud de Prestamos.pdf": "pdf-1762839898137-325926996.pdf", 
+			"Pago de Servicios.pdf": "pdf-1762839910147-424431997.pdf",
+			"Gestión de Chequeras.pdf": "pdf-1762839882812-24906428.pdf",
+			"Manual de apertura de cuenta ejemplo.pdf": "pdf-1762839917088-443931258.pdf",
 		};
 
-		// Crear sugerencias de mapeo
-		dbPdfs.forEach((dbPdf, index) => {
-			const suggestion = {
-				dbId: dbPdf._id,
-				dbFilename: dbPdf.filename,
-				dbUploadDate: dbPdf.uploadDate,
-				suggestedPhysicalFile:
-					physicalFiles[index]?.filename || "No disponible",
-				confidence: physicalFiles[index] ? "alta" : "baja",
+		const idMapping = {
+			"6913814a8717b6e77a788616": "pdf-1762839910147-424431997.pdf", // Pago de Servicios
+			"6913815c8717b6e77a788622": "pdf-1762839890353-607425718.pdf", // Solicitud de Tarjeta
+		};
+
+		// Crear mapeo completo
+		const mappingResults = dbPdfs.map(pdf => {
+			const mappedFile = idMapping[pdf._id.toString()] || specificMapping[pdf.filename];
+			const exists = physicalFiles.includes(mappedFile);
+			
+			return {
+				dbId: pdf._id,
+				title: pdf.filename,
+				originalPath: pdf.filePath,
+				mappedFile: mappedFile,
+				fileExists: exists,
+				uploadDate: pdf.uploadDate
 			};
-			mapping.suggestions.push(suggestion);
 		});
 
-		console.log(
-			`📊 [DEBUG] Archivos físicos: ${physicalFiles.length}, PDFs en BD: ${dbPdfs.length}`
-		);
-		res.json(mapping);
+		res.json({
+			message: "Mapeo de PDFs - Debug",
+			physicalFiles: physicalFiles,
+			dbPdfs: dbPdfs.length,
+			mappingResults: mappingResults,
+			mappingTables: {
+				byName: specificMapping,
+				byId: idMapping
+			}
+		});
 	} catch (error) {
 		console.error("❌ [DEBUG] Error en mapeo:", error);
-		res.status(500).json({ error: "Error obteniendo mapeo de PDFs" });
+		res.status(500).json({ 
+			error: "Error en debug de mapeo",
+			details: error.message
+		});
 	}
 });
 
@@ -697,21 +810,26 @@ const upload = multer({
 });
 
 // Servir archivos estáticos del frontend después de exponer las rutas de PDF
-app.use(express.static(frontendPath, {
-	setHeaders: (res, path, stat) => {
-		// Headers específicos para archivos PDF
-		if (path.endsWith('.pdf')) {
-			res.setHeader('Content-Type', 'application/pdf');
-			res.setHeader('X-Content-Type-Options', 'nosniff');
-			res.setHeader('Content-Security-Policy', 'frame-src \'self\' data: blob:');
-		}
-		// Headers para archivos HTML
-		if (path.endsWith('.html')) {
-			res.setHeader('X-Frame-Options', 'SAMEORIGIN');
-			res.setHeader('X-Content-Type-Options', 'nosniff');
-		}
-	}
-}));
+app.use(
+	express.static(frontendPath, {
+		setHeaders: (res, path, stat) => {
+			// Headers específicos para archivos PDF
+			if (path.endsWith(".pdf")) {
+				res.setHeader("Content-Type", "application/pdf");
+				res.setHeader("X-Content-Type-Options", "nosniff");
+				res.setHeader(
+					"Content-Security-Policy",
+					"frame-src 'self' data: blob:"
+				);
+			}
+			// Headers para archivos HTML
+			if (path.endsWith(".html")) {
+				res.setHeader("X-Frame-Options", "SAMEORIGIN");
+				res.setHeader("X-Content-Type-Options", "nosniff");
+			}
+		},
+	})
+);
 
 // Conectar a MongoDB
 const mongoUri =

@@ -41,7 +41,9 @@ export default function PDFViewer() {
 			navigator.brave.isBrave().then((isBrave) => {
 				setIsBrave(isBrave);
 				if (isBrave) {
-					console.log("🦁 Navegador Brave detectado - usando configuración optimizada");
+					console.log(
+						"🦁 Navegador Brave detectado - usando configuración optimizada"
+					);
 				}
 			});
 		}
@@ -618,7 +620,7 @@ export default function PDFViewer() {
 								target="_blank"
 								rel="noopener noreferrer"
 								style={{
-									background: pdfBase64 
+									background: pdfBase64
 										? "linear-gradient(135deg, #3b82f6, #1d4ed8)"
 										: "linear-gradient(135deg, #9ca3af, #6b7280)",
 									color: "white",
@@ -641,7 +643,9 @@ export default function PDFViewer() {
 									e.target.style.transform = "scale(1)";
 								}}
 							>
-								{pdfBase64 ? "🔗 Abrir en nueva pestaña" : "⏳ Preparando descarga..."}
+								{pdfBase64
+									? "🔗 Abrir en nueva pestaña"
+									: "⏳ Preparando descarga..."}
 							</a>
 						</div>
 
@@ -662,9 +666,10 @@ export default function PDFViewer() {
 							>
 								<span style={{ fontSize: "20px" }}>🦁</span>
 								<div>
-									<strong>Navegador Brave detectado:</strong> Si el PDF no se muestra, 
-									puedes usar el botón "Abrir en nueva pestaña" o ajustar la configuración 
-									de privacidad de Brave (Configuración → Privacidad → Configuración de sitio).
+									<strong>Navegador Brave detectado:</strong> Si el PDF no se
+									muestra, puedes usar el botón "Abrir en nueva pestaña" o
+									ajustar la configuración de privacidad de Brave (Configuración
+									→ Privacidad → Configuración de sitio).
 								</div>
 							</div>
 						)}
@@ -692,8 +697,16 @@ export default function PDFViewer() {
 										color: "#64748b",
 									}}
 								>
-									<div style={{ fontSize: "48px", marginBottom: "16px" }}>📄</div>
-									<div style={{ fontSize: "18px", fontWeight: "600", marginBottom: "8px" }}>
+									<div style={{ fontSize: "48px", marginBottom: "16px" }}>
+										📄
+									</div>
+									<div
+										style={{
+											fontSize: "18px",
+											fontWeight: "600",
+											marginBottom: "8px",
+										}}
+									>
 										Cargando PDF...
 									</div>
 									<div style={{ textAlign: "center" }}>
@@ -715,12 +728,21 @@ export default function PDFViewer() {
 										color: "#64748b",
 									}}
 								>
-									<div style={{ fontSize: "48px", marginBottom: "16px" }}>📄</div>
-									<div style={{ fontSize: "18px", fontWeight: "600", marginBottom: "8px" }}>
+									<div style={{ fontSize: "48px", marginBottom: "16px" }}>
+										📄
+									</div>
+									<div
+										style={{
+											fontSize: "18px",
+											fontWeight: "600",
+											marginBottom: "8px",
+										}}
+									>
 										Error cargando PDF
 									</div>
 									<div style={{ textAlign: "center", marginBottom: "16px" }}>
-										El PDF no se puede mostrar en el navegador.<br />
+										El PDF no se puede mostrar en el navegador.
+										<br />
 										Puedes descargarlo usando el botón de arriba.
 									</div>
 									<button
@@ -750,7 +772,10 @@ export default function PDFViewer() {
 											display: "block",
 										}}
 										onLoad={() => {
-											console.log("📄 PDF cargado en object:", "Base64 Data URL");
+											console.log(
+												"📄 PDF cargado en object:",
+												"Base64 Data URL"
+											);
 											setIframeError(false);
 										}}
 										onError={() => {
