@@ -41,11 +41,13 @@ app.use(
 		contentSecurityPolicy: {
 			directives: {
 				"default-src": ["'self'"],
-				"frame-src": ["'self'", "data:"],
+				"frame-src": ["'self'", "data:", "blob:"],
 				"object-src": ["'none'"],
 				"script-src": ["'self'", "'unsafe-inline'"],
 				"style-src": ["'self'", "'unsafe-inline'"],
 				"img-src": ["'self'", "data:", "https:"],
+				"media-src": ["'self'", "data:", "blob:"],
+				"connect-src": ["'self'", "data:", "https:"],
 				"frame-ancestors": [
 					"'self'",
 					"http://localhost:5173",

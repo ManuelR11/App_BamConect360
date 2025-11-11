@@ -163,7 +163,9 @@ export default function PDFViewer() {
 			if (response.ok) {
 				const data = await response.json();
 				console.log("📄 PDF Base64 cargado exitosamente");
-				setPdfBase64(data.base64);
+				// Guardar el data URL completo, no solo el Base64
+				const fullDataUrl = `data:application/pdf;base64,${data.base64}`;
+				setPdfBase64(fullDataUrl);
 			} else {
 				console.error("❌ Error cargando PDF como Base64:", response.status);
 			}
@@ -642,7 +644,7 @@ export default function PDFViewer() {
 							}}
 						>
 							<iframe
-								src={pdfBase64 ? `data:application/pdf;base64,${pdfBase64}` : `${PDF_SERVE_URL}/${pdfData._id}`}
+								src={pdfBase64 || `${PDF_SERVE_URL}/${pdfData._id}`}
 								onLoad={() =>
 									console.log(
 										"📄 PDF cargado en iframe:",
