@@ -67,6 +67,8 @@ app.use((req, res, next) => {
 
 // ⚡ SUPER IMPORTANTE: Ruta de documentos PDF - PRIMERA PRIORIDAD
 app.get("/documents/:id", async (req, res) => {
+	console.log(`🔥 [DOCUMENTS ROUTE HIT] ID: ${req.params.id}`);
+	
 	try {
 		console.log(`📄 [EARLY] Solicitud de documento: ${req.params.id}`);
 		
@@ -108,6 +110,12 @@ app.get("/documents/:id", async (req, res) => {
 		console.error("❌ [EARLY] Error sirviendo documento:", error);
 		res.status(500).json({ error: "Error obteniendo el PDF" });
 	}
+});
+
+// Ruta de test para verificar que las rutas funcionan
+app.get("/documents/test", (req, res) => {
+	console.log("🧪 [TEST ROUTE] Ruta de test funcionando");
+	res.json({ message: "Ruta de documentos funcionando correctamente" });
 });
 
 // Middleware específico para debuggear rutas API
@@ -669,9 +677,16 @@ app.use((error, req, res, next) => {
 // Ruta catch-all para React Router
 app.get("*", (req, res) => {
 	console.log(`🌍 Catch-all ruta: ${req.path}`);
+	
+	// Excluir rutas específicas que no deben ser manejadas por React Router
 	if (req.path.startsWith("/api")) {
 		console.log(`❌ Ruta de API no encontrada: ${req.path}`);
 		return res.status(404).json({ error: "Ruta de API no encontrada" });
+	}
+	
+	if (req.path.startsWith("/documents/")) {
+		console.log(`❌ Ruta de documento no encontrada: ${req.path}`);
+		return res.status(404).json({ error: "Documento no encontrado" });
 	}
 
 	const indexPath = path.join(frontendPath, "index.html");
