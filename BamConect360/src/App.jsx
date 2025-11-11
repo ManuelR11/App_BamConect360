@@ -8,6 +8,7 @@ import Chatbot from "./Components/Chatbot";
 import Soporte from "./Components/SoporteInterno";
 import AperturaCuentaView from "./Components/Apertura_C";
 import PDFManager from "./Components/PDFManager";
+import PDFViewer from "./Components/PDFViewer";
 import PWAUpdater from "./Components/PWAUpdater";
 import InstallPWA from "./Components/InstallPWA";
 
@@ -23,6 +24,8 @@ function App() {
 				<Route path="/soporte" element={<Soporte />} />
 				<Route path="/apertura-cuenta" element={<AperturaCuentaView />} />
 				<Route path="/admin-pdfs" element={<PDFManager />} />
+				<Route path="/pdf-manager" element={<PDFManager />} />
+				<Route path="/pdf-viewer" element={<PDFViewer />} />
 			</Routes>
 			<PWAUpdater />
 			<InstallPWA />

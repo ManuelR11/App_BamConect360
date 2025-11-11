@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import logoImpresion from "../assets/logo-impresion.png";
 
 export default function GuiasProcedimientos() {
 	const [hoveredCard, setHoveredCard] = useState(null);
@@ -159,66 +160,74 @@ export default function GuiasProcedimientos() {
 		{
 			id: 1,
 			icon: PiggyBankIcon,
-			title: "Apertura de cuenta",
-			description: "Guía completa para abrir nuevas cuentas bancarias",
+			title: "Manual de apertura de cuenta ejemplo",
+			description: "Guia completa para abrir nuevas cuentas bancarias",
 			gradient: "linear-gradient(135deg, #f59e0b, #d97706)",
 			category: "Cuentas",
+			pdfName: "Manual de apertura de cuenta ejemplo.pdf",
 		},
 		{
 			id: 2,
 			icon: CreditCardIcon,
-			title: "Solicitud de tarjetas",
-			description: "Proceso para solicitar tarjetas de crédito y débito",
+			title: "Solicitud de Tarjeta",
+			description: "Proceso para solicitar tarjetas de credito y debito",
 			gradient: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
 			category: "Productos",
+			pdfName: "Solicitud de Tarjeta.pdf",
 		},
 		{
 			id: 3,
 			icon: DocumentIcon,
-			title: "Pago de servicios",
-			description: "Instrucciones para pagos de servicios públicos",
+			title: "Pago de Servicios",
+			description: "Instrucciones para pagos de servicios publicos",
 			gradient: "linear-gradient(135deg, #10b981, #059669)",
 			category: "Pagos",
+			pdfName: "Pago de Servicios.pdf",
 		},
 		{
 			id: 4,
 			icon: SearchIcon,
-			title: "Consulta de saldos y movimientos",
-			description: "Cómo consultar balances y transacciones",
+			title: "Consulta de Saldos y Movimientos",
+			description: "Como consultar balances y transacciones",
 			gradient: "linear-gradient(135deg, #8b5cf6, #7c3aed)",
 			category: "Consultas",
+			pdfName: "Consulta de Saldos y Movimientos.pdf",
 		},
 		{
 			id: 5,
 			icon: EditIcon,
-			title: "Gestión de chequeras",
+			title: "Gestion de Chequeras",
 			description: "Solicitud y manejo de talonarios de cheques",
 			gradient: "linear-gradient(135deg, #ef4444, #dc2626)",
 			category: "Chequeras",
+			pdfName: "Gestion de Chequeras.pdf",
 		},
 		{
 			id: 6,
 			icon: MoneyBagIcon,
-			title: "Solicitud de préstamos",
-			description: "Procedimiento para solicitar créditos",
+			title: "Solicitud de Prestamos",
+			description: "Procedimiento para solicitar creditos",
 			gradient: "linear-gradient(135deg, #06b6d4, #0891b2)",
-			category: "Préstamos",
+			category: "Prestamos",
+			pdfName: "Solicitud de Prestamos.pdf",
 		},
 		{
 			id: 7,
 			icon: MagnifyingGlassIcon,
-			title: "Seguimiento de préstamos",
-			description: "Monitoreo del estado de solicitudes de crédito",
+			title: "Seguimiento de Prestamos",
+			description: "Monitoreo del estado de solicitudes de credito",
 			gradient: "linear-gradient(135deg, #84cc16, #65a30d)",
 			category: "Seguimiento",
+			pdfName: "Seguimiento de Prestamos.pdf",
 		},
 		{
 			id: 8,
 			icon: ChartIcon,
-			title: "Solicitud de refinanciamiento",
-			description: "Proceso para refinanciar préstamos existentes",
+			title: "Manual de inversion a plazo fijo",
+			description: "Proceso para realizar inversiones a plazo fijo",
 			gradient: "linear-gradient(135deg, #f97316, #ea580c)",
-			category: "Refinanciamiento",
+			category: "Inversiones",
+			pdfName: "Manual de inversion a plazo fijo.pdf",
 		},
 	];
 
@@ -281,27 +290,15 @@ export default function GuiasProcedimientos() {
 					}}
 				>
 					<div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-						<div
+						<img
+							src={logoImpresion}
+							alt="Bam Logo"
 							style={{
 								width: "40px",
 								height: "40px",
-								background: "linear-gradient(135deg, #fbbf24, #f97316)",
 								borderRadius: "8px",
-								display: "flex",
-								alignItems: "center",
-								justifyContent: "center",
 							}}
-						>
-							<div
-								style={{
-									width: "24px",
-									height: "24px",
-									background: "white",
-									borderRadius: "4px",
-									opacity: 0.9,
-								}}
-							></div>
-						</div>
+						/>
 						<span
 							style={{ fontSize: "24px", fontWeight: "700", color: "#1f2937" }}
 						>
@@ -623,7 +620,12 @@ export default function GuiasProcedimientos() {
 								}}
 								onMouseEnter={() => setHoveredCard(service.id)}
 								onMouseLeave={() => setHoveredCard(null)}
-								onClick={() => (window.location.href = "/apertura-cuenta")}
+								onClick={() => {
+									// Navegar al visor de PDF con el nombre del archivo
+									window.location.href = `/pdf-viewer?filename=${encodeURIComponent(
+										service.pdfName
+									)}`;
+								}}
 							>
 								<div
 									style={{

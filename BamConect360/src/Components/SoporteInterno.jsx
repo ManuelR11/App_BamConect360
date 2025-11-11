@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import logoImpresion from "../assets/logo-impresion.png";
 
 export default function BamSoporteInterno() {
 	const [isVisible, setIsVisible] = useState(false);
@@ -266,27 +267,15 @@ export default function BamSoporteInterno() {
 						</button>
 
 						<div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-							<div
+							<img
+								src={logoImpresion}
+								alt="Bam Logo"
 								style={{
 									width: "40px",
 									height: "40px",
-									background: "linear-gradient(135deg, #fbbf24, #f97316)",
 									borderRadius: "8px",
-									display: "flex",
-									alignItems: "center",
-									justifyContent: "center",
 								}}
-							>
-								<div
-									style={{
-										width: "24px",
-										height: "24px",
-										background: "white",
-										borderRadius: "4px",
-										opacity: 0.9,
-									}}
-								></div>
-							</div>
+							/>
 							<span
 								style={{
 									fontSize: "24px",

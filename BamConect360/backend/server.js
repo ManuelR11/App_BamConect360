@@ -33,11 +33,25 @@ if (process.env.OPENAI_API_KEY) {
 }
 
 // Middleware de seguridad
-app.use(helmet());
+app.use(
+	helmet({
+		contentSecurityPolicy: {
+			directives: {
+				"frame-ancestors": [
+					"'self'",
+					"http://localhost:5173",
+					"http://localhost:5174",
+					"http://localhost:3000",
+				],
+			},
+		},
+	})
+);
 app.use(
 	cors({
 		origin: [
 			"http://localhost:5173",
+			"http://localhost:5174",
 			"http://localhost:3000",
 			process.env.FRONTEND_URL || "*",
 		],
@@ -140,6 +154,10 @@ const pdfContentSchema = new mongoose.Schema({
 		type: String,
 		required: true,
 	},
+	filePath: {
+		type: String,
+		required: true,
+	},
 	uploadDate: {
 		type: Date,
 		default: Date.now,
@@ -147,6 +165,30 @@ const pdfContentSchema = new mongoose.Schema({
 	isActive: {
 		type: Boolean,
 		default: true,
+	},
+	ratings: [
+		{
+			rating: {
+				type: Number,
+				min: 1,
+				max: 5,
+				required: true,
+			},
+			timestamp: {
+				type: Date,
+				default: Date.now,
+			},
+			// En una implementación real, podrías agregar userIP o userId
+			userIP: String,
+		},
+	],
+	averageRating: {
+		type: Number,
+		default: 0,
+	},
+	totalRatings: {
+		type: Number,
+		default: 0,
 	},
 });
 
@@ -243,11 +285,12 @@ app.post("/api/upload-pdf", upload.single("pdf"), async (req, res) => {
 		const pdfContent = new PDFContent({
 			filename: req.file.originalname,
 			content: pdfData.text,
+			filePath: req.file.path,
 		});
 
 		await pdfContent.save();
 		await loadTrainingContent();
-		fs.unlinkSync(req.file.path);
+		// No eliminamos el archivo PDF, lo mantenemos para servirlo después
 
 		res.json({
 			message: "PDF procesado y almacenado correctamente",
@@ -279,6 +322,76 @@ app.get("/api/pdfs", async (req, res) => {
 	}
 });
 
+// Ruta para obtener los datos JSON de un PDF específico
+app.get("/api/pdf/:id/data", async (req, res) => {
+	try {
+		// Validar que el ID sea válido
+		if (
+			!req.params.id ||
+			req.params.id === "undefined" ||
+			req.params.id.length !== 24
+		) {
+			return res.status(400).json({ error: "ID de PDF inválido" });
+		}
+
+		const pdf = await PDFContent.findById(req.params.id);
+		if (!pdf || !pdf.isActive) {
+			return res.status(404).json({ error: "PDF no encontrado" });
+		}
+
+		// Devolver los datos JSON del PDF
+		res.json({
+			_id: pdf._id,
+			filename: pdf.filename,
+			content: pdf.content,
+			uploadDate: pdf.uploadDate,
+			averageRating: pdf.averageRating || 0,
+			totalRatings: pdf.totalRatings || 0,
+		});
+	} catch (error) {
+		console.error("Error obteniendo datos del PDF:", error);
+		res.status(500).json({ error: "Error obteniendo los datos del PDF" });
+	}
+});
+
+// Ruta para obtener un PDF específico (archivo)
+app.get("/api/pdf/:id", async (req, res) => {
+	try {
+		// Validar que el ID sea válido
+		if (
+			!req.params.id ||
+			req.params.id === "undefined" ||
+			req.params.id.length !== 24
+		) {
+			return res.status(400).json({ error: "ID de PDF inválido" });
+		}
+
+		const pdf = await PDFContent.findById(req.params.id);
+		if (!pdf || !pdf.isActive) {
+			return res.status(404).json({ error: "PDF no encontrado" });
+		}
+
+		// Verificar si el archivo PDF existe
+		if (!pdf.filePath || !fs.existsSync(pdf.filePath)) {
+			return res
+				.status(404)
+				.json({ error: "Archivo PDF no encontrado en el servidor" });
+		}
+
+		// Configurar headers para mostrar PDF en el navegador
+		res.setHeader("Content-Type", "application/pdf");
+		res.setHeader("Content-Disposition", `inline; filename="${pdf.filename}"`);
+		res.setHeader("X-Frame-Options", "SAMEORIGIN");
+		res.setHeader("Cache-Control", "public, max-age=3600");
+
+		// Servir el archivo PDF real
+		res.sendFile(path.resolve(pdf.filePath));
+	} catch (error) {
+		console.error("Error obteniendo PDF:", error);
+		res.status(500).json({ error: "Error obteniendo el PDF" });
+	}
+});
+
 // Ruta para eliminar un PDF
 app.delete("/api/pdfs/:id", async (req, res) => {
 	try {
@@ -288,6 +401,76 @@ app.delete("/api/pdfs/:id", async (req, res) => {
 	} catch (error) {
 		console.error("Error eliminando PDF:", error);
 		res.status(500).json({ error: "Error eliminando el PDF" });
+	}
+});
+
+// Ruta para agregar rating a un PDF
+app.post("/api/pdfs/:id/rating", async (req, res) => {
+	try {
+		const { rating } = req.body;
+		const pdfId = req.params.id;
+
+		// Validar rating
+		if (!rating || rating < 1 || rating > 5) {
+			return res
+				.status(400)
+				.json({ error: "El rating debe ser un número entre 1 y 5" });
+		}
+
+		// Buscar el PDF
+		const pdf = await PDFContent.findById(pdfId);
+		if (!pdf) {
+			return res.status(404).json({ error: "PDF no encontrado" });
+		}
+
+		// Obtener IP del usuario (para evitar ratings múltiples)
+		const userIP = req.ip || req.connection.remoteAddress || "unknown";
+
+		// Agregar nuevo rating
+		pdf.ratings.push({
+			rating: parseInt(rating),
+			userIP: userIP,
+			timestamp: new Date(),
+		});
+
+		// Calcular nuevo promedio
+		const totalRatings = pdf.ratings.length;
+		const sumRatings = pdf.ratings.reduce((sum, r) => sum + r.rating, 0);
+		pdf.averageRating = totalRatings > 0 ? sumRatings / totalRatings : 0;
+		pdf.totalRatings = totalRatings;
+
+		await pdf.save();
+
+		res.json({
+			message: "Rating agregado exitosamente",
+			averageRating: Math.round(pdf.averageRating * 10) / 10,
+			totalRatings: pdf.totalRatings,
+		});
+	} catch (error) {
+		console.error("Error agregando rating:", error);
+		res.status(500).json({ error: "Error agregando el rating" });
+	}
+});
+
+// Ruta para obtener ratings de un PDF
+app.get("/api/pdfs/:id/rating", async (req, res) => {
+	try {
+		const pdf = await PDFContent.findById(req.params.id);
+		if (!pdf) {
+			return res.status(404).json({ error: "PDF no encontrado" });
+		}
+
+		res.json({
+			averageRating: Math.round(pdf.averageRating * 10) / 10,
+			totalRatings: pdf.totalRatings,
+			ratings: pdf.ratings.map((r) => ({
+				rating: r.rating,
+				timestamp: r.timestamp,
+			})),
+		});
+	} catch (error) {
+		console.error("Error obteniendo ratings:", error);
+		res.status(500).json({ error: "Error obteniendo los ratings" });
 	}
 });
 
@@ -364,6 +547,18 @@ app.post("/api/reset-training", async (req, res) => {
 	} catch (error) {
 		console.error("Error reseteando entrenamiento:", error);
 		res.status(500).json({ error: "Error reseteando el entrenamiento" });
+	}
+});
+
+// Ruta para limpiar todos los PDFs (útil para desarrollo)
+app.delete("/api/reset-all-pdfs", async (req, res) => {
+	try {
+		await PDFContent.deleteMany({});
+		trainingContent = "";
+		res.json({ message: "Todos los PDFs eliminados correctamente" });
+	} catch (error) {
+		console.error("Error eliminando todos los PDFs:", error);
+		res.status(500).json({ error: "Error eliminando todos los PDFs" });
 	}
 });
 

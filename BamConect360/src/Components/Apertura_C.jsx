@@ -1,6 +1,7 @@
 import React from "react";
 import { ArrowLeft, FileText, Download, Printer } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import logoImpresion from "../assets/logo-impresion.png";
 
 const AperturaCuentaView = ({ onBack }) => {
 	// Ruta del PDF en tu repositorio (ajústala según tu estructura de carpetas)
@@ -331,9 +332,15 @@ const AperturaCuentaView = ({ onBack }) => {
 			<header style={styles.header}>
 				<div style={styles.headerContent}>
 					<div style={styles.logo}>
-						<div style={styles.logoIcon}>
-							<div style={styles.logoIconInner}></div>
-						</div>
+						<img
+							src={logoImpresion}
+							alt="Bam Logo"
+							style={{
+								width: "40px",
+								height: "40px",
+								borderRadius: "8px",
+							}}
+						/>
 						<span style={styles.logoText}>Bam</span>
 					</div>
 					<div style={styles.userInfo}>

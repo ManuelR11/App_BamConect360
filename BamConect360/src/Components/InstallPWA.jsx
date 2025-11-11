@@ -44,25 +44,35 @@ const InstallPWA = () => {
 		<div
 			style={{
 				position: "fixed",
-				top: "20px",
+				bottom: "20px",
 				right: "20px",
-				backgroundColor: "#10b981",
+				backgroundColor: "rgba(107, 114, 128, 0.8)",
 				color: "white",
-				padding: "12px 16px",
-				borderRadius: "8px",
-				boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+				padding: "6px 8px",
+				borderRadius: "20px",
+				boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
 				zIndex: 1000,
 				cursor: "pointer",
 				display: "flex",
 				alignItems: "center",
-				gap: "8px",
-				fontSize: "14px",
-				fontWeight: "500",
+				gap: "4px",
+				fontSize: "11px",
+				fontWeight: "400",
+				opacity: 0.7,
+				transition: "all 0.3s ease",
+				backdropFilter: "blur(10px)",
 			}}
 			onClick={handleInstallClick}
+			onMouseEnter={(e) => {
+				e.target.style.opacity = "1";
+				e.target.style.backgroundColor = "rgba(107, 114, 128, 0.9)";
+			}}
+			onMouseLeave={(e) => {
+				e.target.style.opacity = "0.7";
+				e.target.style.backgroundColor = "rgba(107, 114, 128, 0.8)";
+			}}
 		>
-			<span>📱</span>
-			Instalar App
+			<span style={{ fontSize: "10px" }}>📱</span>
 		</div>
 	);
 };

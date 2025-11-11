@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import logoImpresion from "../assets/logo-impresion.png";
 
 export default function BamConecta360() {
 	const [hoveredCard, setHoveredCard] = useState(null);
@@ -155,27 +156,15 @@ export default function BamConecta360() {
 					}}
 				>
 					<div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-						<div
+						<img
+							src={logoImpresion}
+							alt="Bam Logo"
 							style={{
 								width: "40px",
 								height: "40px",
-								background: "linear-gradient(135deg, #fbbf24, #f97316)",
 								borderRadius: "8px",
-								display: "flex",
-								alignItems: "center",
-								justifyContent: "center",
 							}}
-						>
-							<div
-								style={{
-									width: "24px",
-									height: "24px",
-									background: "white",
-									borderRadius: "4px",
-									opacity: 0.9,
-								}}
-							></div>
-						</div>
+						/>
 						<span
 							style={{ fontSize: "24px", fontWeight: "700", color: "#1f2937" }}
 						>
@@ -580,27 +569,15 @@ export default function BamConecta360() {
 							marginBottom: "16px",
 						}}
 					>
-						<div
+						<img
+							src={logoImpresion}
+							alt="Bam Logo"
 							style={{
 								width: "32px",
 								height: "32px",
-								background: "linear-gradient(135deg, #fbbf24, #f97316)",
 								borderRadius: "6px",
-								display: "flex",
-								alignItems: "center",
-								justifyContent: "center",
 							}}
-						>
-							<div
-								style={{
-									width: "16px",
-									height: "16px",
-									background: "white",
-									borderRadius: "2px",
-									opacity: 0.9,
-								}}
-							></div>
-						</div>
+						/>
 						<span style={{ fontSize: "20px", fontWeight: "700" }}>
 							Bam Conecta 360
 						</span>
