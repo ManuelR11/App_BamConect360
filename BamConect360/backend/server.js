@@ -120,7 +120,7 @@ app.get("/sw.js", (req, res) => {
 // Crear directorio para uploads si no existe
 const uploadsDir = path.join(__dirname, "uploads");
 if (!fs.existsSync(uploadsDir)) {
-        fs.mkdirSync(uploadsDir, { recursive: true });
+	fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
 // Configuración de multer para subida de archivos
@@ -135,17 +135,17 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({
-        storage: storage,
-        limits: {
-                fileSize: 10 * 1024 * 1024, // 10MB máximo
-        },
-        fileFilter: (req, file, cb) => {
-                if (file.mimetype === "application/pdf") {
-                        cb(null, true);
-                } else {
-                        cb(new Error("Solo se permiten archivos PDF"), false);
-                }
-        },
+	storage: storage,
+	limits: {
+		fileSize: 10 * 1024 * 1024, // 10MB máximo
+	},
+	fileFilter: (req, file, cb) => {
+		if (file.mimetype === "application/pdf") {
+			cb(null, true);
+		} else {
+			cb(new Error("Solo se permiten archivos PDF"), false);
+		}
+	},
 });
 
 // Esquema de MongoDB para almacenar el contenido de los PDFs
@@ -201,46 +201,48 @@ const PDFContent = mongoose.model("PDFContent", pdfContentSchema);
 const isValidPdfId = (id) => id && id !== "undefined" && id.length === 24;
 
 const servePdfDocument = async (req, res) => {
-        const { id } = req.params;
-        console.log(`🔥 [PDF ROUTE HIT] ID: ${id}`);
+	const { id } = req.params;
+	console.log(`🔥 [PDF ROUTE HIT] ID: ${id}`);
 
-        try {
-                if (!isValidPdfId(id)) {
-                        console.log(`❌ [PDF ROUTE] ID inválido: ${id}`);
-                        return res.status(400).json({ error: "ID de PDF inválido" });
-                }
+	try {
+		if (!isValidPdfId(id)) {
+			console.log(`❌ [PDF ROUTE] ID inválido: ${id}`);
+			return res.status(400).json({ error: "ID de PDF inválido" });
+		}
 
-                const pdf = await PDFContent.findById(id);
-                if (!pdf || !pdf.isActive) {
-                        console.log(`❌ [PDF ROUTE] PDF no encontrado: ${id}`);
-                        return res.status(404).json({ error: "PDF no encontrado" });
-                }
+		const pdf = await PDFContent.findById(id);
+		if (!pdf || !pdf.isActive) {
+			console.log(`❌ [PDF ROUTE] PDF no encontrado: ${id}`);
+			return res.status(404).json({ error: "PDF no encontrado" });
+		}
 
-                if (!pdf.filePath || !fs.existsSync(pdf.filePath)) {
-                        console.log(`❌ [PDF ROUTE] Archivo no existe: ${pdf.filePath}`);
-                        return res
-                                .status(404)
-                                .json({ error: "Archivo PDF no encontrado en el servidor" });
-                }
+		if (!pdf.filePath || !fs.existsSync(pdf.filePath)) {
+			console.log(`❌ [PDF ROUTE] Archivo no existe: ${pdf.filePath}`);
+			return res
+				.status(404)
+				.json({ error: "Archivo PDF no encontrado en el servidor" });
+		}
 
-                res.setHeader("Content-Type", "application/pdf");
-                res.setHeader("Content-Disposition", `inline; filename="${pdf.filename}"`);
-                res.setHeader("X-Frame-Options", "SAMEORIGIN");
-                res.setHeader("Cache-Control", "public, max-age=3600");
-                res.setHeader("Access-Control-Allow-Origin", "*");
+		res.setHeader("Content-Type", "application/pdf");
+		res.setHeader("Content-Disposition", `inline; filename="${pdf.filename}"`);
+		res.setHeader("X-Frame-Options", "SAMEORIGIN");
+		res.setHeader("Cache-Control", "public, max-age=3600");
+		res.setHeader("Access-Control-Allow-Origin", "*");
 
-                console.log(`✅ [PDF ROUTE] Sirviendo PDF: ${pdf.filename} desde ${pdf.filePath}`);
-                res.sendFile(path.resolve(pdf.filePath));
-        } catch (error) {
-                console.error("❌ [PDF ROUTE] Error sirviendo documento:", error);
-                res.status(500).json({ error: "Error obteniendo el PDF" });
-        }
+		console.log(
+			`✅ [PDF ROUTE] Sirviendo PDF: ${pdf.filename} desde ${pdf.filePath}`
+		);
+		res.sendFile(path.resolve(pdf.filePath));
+	} catch (error) {
+		console.error("❌ [PDF ROUTE] Error sirviendo documento:", error);
+		res.status(500).json({ error: "Error obteniendo el PDF" });
+	}
 };
 
 // Rutas para servir PDFs directamente desde el backend
 app.get("/documents/test", (req, res) => {
-        console.log("🧪 [PDF ROUTE] Test de documentos funcionando");
-        res.json({ message: "Ruta de documentos funcionando correctamente" });
+	console.log("🧪 [PDF ROUTE] Test de documentos funcionando");
+	res.json({ message: "Ruta de documentos funcionando correctamente" });
 });
 
 app.get("/documents/:id", servePdfDocument);
@@ -248,7 +250,6 @@ app.get("/api/pdf/:id", servePdfDocument);
 
 // Servir archivos estáticos del frontend después de exponer las rutas de PDF
 app.use(express.static(frontendPath));
-
 
 // Conectar a MongoDB
 const mongoUri =
@@ -596,14 +597,14 @@ app.use((error, req, res, next) => {
 // Ruta catch-all para React Router
 app.get("*", (req, res) => {
 	console.log(`🌍 Catch-all ruta: ${req.path}`);
-	
+
 	// Excluir rutas específicas que no deben ser manejadas por React Router
-	if (req.path.startsWith("/api")) {
+	if (req.path.startsWith("/api") || req.path.startsWith("/documents")) {
 		console.log(`❌ Ruta de API no encontrada: ${req.path}`);
 		return res.status(404).json({ error: "Ruta de API no encontrada" });
 	}
-	
-        const indexPath = path.join(frontendPath, "index.html");
+
+	const indexPath = path.join(frontendPath, "index.html");
 	console.log(`📄 Sirviendo index.html desde: ${indexPath}`);
 	console.log(`📄 ¿Archivo existe?`, fs.existsSync(indexPath));
 
