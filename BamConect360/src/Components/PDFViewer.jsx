@@ -48,16 +48,20 @@ export default function PDFViewer() {
 				console.log("🎯 PDF encontrado:", foundPdf);
 
 				if (foundPdf) {
+					console.log("📋 Intentando obtener detalles del PDF:", foundPdf._id);
 					// Obtener los detalles completos del PDF
 					const pdfResponse = await fetch(
 						`${API_BASE_URL}/pdf/${foundPdf._id}/data`
 					);
+					console.log("📋 Response status para detalles:", pdfResponse.status);
 					if (pdfResponse.ok) {
 						const pdfDetails = await pdfResponse.json();
+						console.log("📋 Detalles del PDF obtenidos:", pdfDetails);
 						setPdfData(pdfDetails);
 						// Cargar datos de rating
 						loadRatingData(foundPdf._id);
 					} else {
+						console.log("⚠️ No se pudieron obtener detalles, usando datos básicos");
 						setPdfData(foundPdf);
 						loadRatingData(foundPdf._id);
 					}
@@ -610,6 +614,8 @@ export default function PDFViewer() {
 						>
 							<iframe
 								src={`${API_BASE_URL}/pdf/${pdfData._id}`}
+								onLoad={() => console.log("📄 PDF cargado en iframe:", `${API_BASE_URL}/pdf/${pdfData._id}`)}
+								onError={() => console.error("❌ Error cargando PDF en iframe:", `${API_BASE_URL}/pdf/${pdfData._id}`)}
 								style={{
 									width: "100%",
 									height: "600px",
