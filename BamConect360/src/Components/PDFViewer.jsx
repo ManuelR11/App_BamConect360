@@ -61,7 +61,9 @@ export default function PDFViewer() {
 						// Cargar datos de rating
 						loadRatingData(foundPdf._id);
 					} else {
-						console.log("⚠️ No se pudieron obtener detalles, usando datos básicos");
+						console.log(
+							"⚠️ No se pudieron obtener detalles, usando datos básicos"
+						);
 						setPdfData(foundPdf);
 						loadRatingData(foundPdf._id);
 					}
@@ -614,8 +616,18 @@ export default function PDFViewer() {
 						>
 							<iframe
 								src={`${API_BASE_URL}/pdf/${pdfData._id}`}
-								onLoad={() => console.log("📄 PDF cargado en iframe:", `${API_BASE_URL}/pdf/${pdfData._id}`)}
-								onError={() => console.error("❌ Error cargando PDF en iframe:", `${API_BASE_URL}/pdf/${pdfData._id}`)}
+								onLoad={() =>
+									console.log(
+										"📄 PDF cargado en iframe:",
+										`${API_BASE_URL}/pdf/${pdfData._id}`
+									)
+								}
+								onError={() =>
+									console.error(
+										"❌ Error cargando PDF en iframe:",
+										`${API_BASE_URL}/pdf/${pdfData._id}`
+									)
+								}
 								style={{
 									width: "100%",
 									height: "600px",

@@ -216,8 +216,24 @@ const servePdfDocument = async (req, res) => {
 			return res.status(404).json({ error: "PDF no encontrado" });
 		}
 
+		console.log(`🔍 [PDF ROUTE] Verificando archivo en: ${pdf.filePath}`);
+		console.log(`🔍 [PDF ROUTE] Archivo existe: ${fs.existsSync(pdf.filePath)}`);
+		
 		if (!pdf.filePath || !fs.existsSync(pdf.filePath)) {
 			console.log(`❌ [PDF ROUTE] Archivo no existe: ${pdf.filePath}`);
+			console.log(`📁 [PDF ROUTE] Contenido del directorio uploads:`);
+			try {
+				const uploadsDir = path.join(__dirname, 'uploads');
+				console.log(`📁 [PDF ROUTE] Directorio uploads: ${uploadsDir}`);
+				console.log(`📁 [PDF ROUTE] Existe directorio: ${fs.existsSync(uploadsDir)}`);
+				if (fs.existsSync(uploadsDir)) {
+					const files = fs.readdirSync(uploadsDir);
+					console.log(`📁 [PDF ROUTE] Archivos en uploads: ${files.length} archivos`);
+					files.forEach(file => console.log(`  - ${file}`));
+				}
+			} catch (dirError) {
+				console.log(`❌ [PDF ROUTE] Error leyendo directorio: ${dirError.message}`);
+			}
 			return res
 				.status(404)
 				.json({ error: "Archivo PDF no encontrado en el servidor" });
@@ -246,7 +262,10 @@ app.get("/documents/test", (req, res) => {
 });
 
 app.get("/documents/:id", servePdfDocument);
-app.get("/api/pdf/:id", servePdfDocument);
+app.get("/api/pdf/:id", (req, res) => {
+	console.log(`🚀 [API PDF ROUTE] Ruta /api/pdf/${req.params.id} alcanzada!`);
+	servePdfDocument(req, res);
+});
 
 // Servir archivos estáticos del frontend después de exponer las rutas de PDF
 app.use(express.static(frontendPath));
@@ -597,6 +616,8 @@ app.use((error, req, res, next) => {
 // Ruta catch-all para React Router
 app.get("*", (req, res) => {
 	console.log(`🌍 Catch-all ruta: ${req.path}`);
+	console.log(`🔍 Catch-all - ¿Empieza con /api?: ${req.path.startsWith("/api")}`);
+	console.log(`🔍 Catch-all - ¿Empieza con /documents?: ${req.path.startsWith("/documents")}`);
 
 	// Excluir rutas específicas que no deben ser manejadas por React Router
 	if (req.path.startsWith("/api") || req.path.startsWith("/documents")) {
