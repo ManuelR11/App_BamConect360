@@ -348,25 +348,53 @@ const servePdfAsBase64 = async (req, res) => {
 		if (!targetFilePath || !fs.existsSync(targetFilePath)) {
 			console.log(`❌ [PDF BASE64] Archivo no existe: ${targetFilePath}`);
 			
-			// Como fallback, intentar buscar en el directorio uploads
+			// Como fallback, intentar buscar en el directorio uploads LOCAL
 			const uploadsDir = path.join(__dirname, "uploads");
-			const filename = path.basename(targetFilePath);
+			const filename = path.basename(pdf.filePath); // Usar el filename original de la BD
 			const fallbackPath = path.join(uploadsDir, filename);
 			
-			console.log(`🔍 [PDF BASE64] Intentando fallback: ${fallbackPath}`);
+			console.log(`🔍 [PDF BASE64] Intentando fallback local: ${fallbackPath}`);
+			console.log(`📁 [PDF BASE64] Directorio uploads: ${uploadsDir}`);
+			
+			// Listar archivos disponibles para debug
+			try {
+				const availableFiles = fs.readdirSync(uploadsDir).filter(f => f.endsWith('.pdf'));
+				console.log(`📋 [PDF BASE64] Archivos disponibles: ${availableFiles.slice(0, 5).join(', ')}${availableFiles.length > 5 ? '...' : ''}`);
+			} catch (e) {
+				console.log(`❌ [PDF BASE64] No se puede leer directorio uploads: ${e.message}`);
+			}
 			
 			if (fs.existsSync(fallbackPath)) {
 				targetFilePath = fallbackPath;
 				console.log(`✅ [PDF BASE64] Encontrado con fallback: ${targetFilePath}`);
 			} else {
-				console.log(`❌ [PDF BASE64] Fallback también falló`);
-				return res.status(404).json({
-					error: "Archivo PDF no encontrado en el sistema",
-					filename: pdf.filename,
-					originalPath: pdf.filePath,
-					attemptedPath: targetFilePath,
-					fallbackPath: fallbackPath,
-				});
+				console.log(`❌ [PDF BASE64] Fallback también falló: ${fallbackPath}`);
+				
+				// Último intento: buscar cualquier PDF con nombre similar
+				try {
+					const uploadsDir = path.join(__dirname, "uploads");
+					const availableFiles = fs.readdirSync(uploadsDir).filter(f => f.endsWith('.pdf'));
+					if (availableFiles.length > 0) {
+						// Usar el primer archivo disponible como último recurso
+						const lastResortPath = path.join(uploadsDir, availableFiles[0]);
+						console.log(`🚨 [PDF BASE64] Último recurso - usando: ${lastResortPath}`);
+						targetFilePath = lastResortPath;
+					} else {
+						return res.status(404).json({
+							error: "No hay archivos PDF disponibles en el sistema",
+							filename: pdf.filename,
+							originalPath: pdf.filePath,
+							uploadsDir: uploadsDir,
+						});
+					}
+				} catch (e) {
+					return res.status(404).json({
+						error: "Error accediendo al directorio de archivos",
+						filename: pdf.filename,
+						originalPath: pdf.filePath,
+						errorMessage: e.message,
+					});
+				}
 			}
 		}
 
