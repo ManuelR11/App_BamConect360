@@ -7,11 +7,18 @@ const API_BASE_URL =
 		? "http://localhost:3001/api"
 		: `${window.location.origin}/api`;
 
+// URL específica para servir PDFs (evita conflictos con React Router)
+const PDF_SERVE_URL =
+	window.location.hostname === "localhost"
+		? "http://localhost:3001/files"
+		: `${window.location.origin}/files`;
+
 export default function PDFViewer() {
 	const [pdfData, setPdfData] = useState(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState("");
 	const [filename, setFilename] = useState("");
+	const [pdfBase64, setPdfBase64] = useState(null);
 	const [rating, setRating] = useState(0);
 	const [hoveredStar, setHoveredStar] = useState(0);
 	const [userRating, setUserRating] = useState(0);
@@ -60,12 +67,16 @@ export default function PDFViewer() {
 						setPdfData(pdfDetails);
 						// Cargar datos de rating
 						loadRatingData(foundPdf._id);
+						// Cargar PDF como Base64
+						loadPdfAsBase64(foundPdf._id);
 					} else {
 						console.log(
 							"⚠️ No se pudieron obtener detalles, usando datos básicos"
 						);
 						setPdfData(foundPdf);
 						loadRatingData(foundPdf._id);
+						// Cargar PDF como Base64
+						loadPdfAsBase64(foundPdf._id);
 					}
 				} else {
 					setError(
@@ -142,6 +153,22 @@ export default function PDFViewer() {
 			}
 		} catch (error) {
 			console.error("Error cargando datos de rating:", error);
+		}
+	};
+
+	const loadPdfAsBase64 = async (pdfId) => {
+		try {
+			console.log("📄 Cargando PDF como Base64:", pdfId);
+			const response = await fetch(`${API_BASE_URL}/pdf/${pdfId}/base64`);
+			if (response.ok) {
+				const data = await response.json();
+				console.log("📄 PDF Base64 cargado exitosamente");
+				setPdfBase64(data.base64);
+			} else {
+				console.error("❌ Error cargando PDF como Base64:", response.status);
+			}
+		} catch (error) {
+			console.error("❌ Error cargando PDF como Base64:", error);
 		}
 	};
 
@@ -579,7 +606,7 @@ export default function PDFViewer() {
 								📁 Visualizador de PDF
 							</h2>
 							<a
-								href={`${API_BASE_URL}/pdf/${pdfData._id}`}
+								href={pdfBase64 ? `data:application/pdf;base64,${pdfBase64}` : `${PDF_SERVE_URL}/${pdfData._id}`}
 								target="_blank"
 								rel="noopener noreferrer"
 								style={{
@@ -615,17 +642,17 @@ export default function PDFViewer() {
 							}}
 						>
 							<iframe
-								src={`${API_BASE_URL}/pdf/${pdfData._id}`}
+								src={pdfBase64 ? `data:application/pdf;base64,${pdfBase64}` : `${PDF_SERVE_URL}/${pdfData._id}`}
 								onLoad={() =>
 									console.log(
 										"📄 PDF cargado en iframe:",
-										`${API_BASE_URL}/pdf/${pdfData._id}`
+										pdfBase64 ? "Base64 Data URL" : `${PDF_SERVE_URL}/${pdfData._id}`
 									)
 								}
 								onError={() =>
 									console.error(
 										"❌ Error cargando PDF en iframe:",
-										`${API_BASE_URL}/pdf/${pdfData._id}`
+										pdfBase64 ? "Base64 Data URL" : `${PDF_SERVE_URL}/${pdfData._id}`
 									)
 								}
 								style={{

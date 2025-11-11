@@ -191,6 +191,42 @@ const servePdfDocument = async (req, res) => {
 	}
 };
 
+// Nueva función para servir PDF como Base64
+const servePdfAsBase64 = async (req, res) => {
+	const { id } = req.params;
+	console.log(`📄 [PDF BASE64 ROUTE] ID: ${id}`);
+
+	try {
+		if (!isValidPdfId(id)) {
+			return res.status(400).json({ error: "ID de PDF inválido" });
+		}
+
+		const pdf = await PDFContent.findById(id);
+		if (!pdf || !pdf.isActive) {
+			return res.status(404).json({ error: "PDF no encontrado" });
+		}
+
+		if (!pdf.filePath || !fs.existsSync(pdf.filePath)) {
+			return res.status(404).json({ error: "Archivo PDF no encontrado" });
+		}
+
+		// Leer el archivo y convertirlo a Base64
+		const pdfBuffer = fs.readFileSync(pdf.filePath);
+		const base64Data = pdfBuffer.toString('base64');
+		
+		console.log(`✅ [PDF BASE64] PDF convertido a Base64: ${pdf.filename}`);
+		
+		res.json({
+			filename: pdf.filename,
+			base64: base64Data,
+			contentType: 'application/pdf'
+		});
+	} catch (error) {
+		console.error("❌ [PDF BASE64] Error:", error);
+		res.status(500).json({ error: "Error obteniendo el PDF" });
+	}
+};
+
 // ⚠️ RUTAS CRÍTICAS DE PDF - DEBEN ESTAR ANTES DE LOS ARCHIVOS ESTÁTICOS
 app.get("/documents/test", (req, res) => {
 	console.log("🧪 [PDF ROUTE] Test de documentos funcionando");
@@ -198,10 +234,15 @@ app.get("/documents/test", (req, res) => {
 });
 
 app.get("/documents/:id", servePdfDocument);
+app.get("/files/:id", (req, res) => {
+	console.log(`🚀 [FILES ROUTE] Ruta /files/${req.params.id} alcanzada!`);
+	servePdfDocument(req, res);
+});
 app.get("/api/pdf/:id", (req, res) => {
 	console.log(`🚀 [API PDF ROUTE] Ruta /api/pdf/${req.params.id} alcanzada!`);
 	servePdfDocument(req, res);
 });
+app.get("/api/pdf/:id/base64", servePdfAsBase64);
 
 // Servir archivos estáticos del frontend
 const frontendPath =
@@ -627,7 +668,7 @@ app.get("*", (req, res) => {
 	console.log(`🔍 Catch-all - ¿Empieza con /documents?: ${req.path.startsWith("/documents")}`);
 
 	// Excluir rutas específicas que no deben ser manejadas por React Router
-	if (req.path.startsWith("/api") || req.path.startsWith("/documents")) {
+	if (req.path.startsWith("/api") || req.path.startsWith("/documents") || req.path.startsWith("/files")) {
 		console.log(`❌ Ruta de API no encontrada: ${req.path}`);
 		return res.status(404).json({ error: "Ruta de API no encontrada" });
 	}
