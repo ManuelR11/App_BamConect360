@@ -18,11 +18,15 @@ const __dirname = path.dirname(__filename);
 // Cargar variables de entorno
 dotenv.config();
 
+// Detectar ambiente automáticamente
+const isProduction = process.env.NODE_ENV === 'production' || process.env.PORT || process.env.RAILWAY_ENVIRONMENT;
+console.log(`🌍 Environment: ${isProduction ? "production" : "development"}`);
+
 const app = express();
 const PORT = parseInt(process.env.PORT) || 3001;
 
 // Configurar trust proxy para Railway
-app.set('trust proxy', 1);
+app.set("trust proxy", 1);
 
 // Configurar OpenAI solo si hay API key
 let openai = null;
@@ -35,27 +39,44 @@ if (process.env.OPENAI_API_KEY) {
 	console.log("⚠️ OpenAI API Key no encontrada - modo desarrollo");
 }
 
+// Middleware específico para PDFs antes de helmet
+app.use((req, res, next) => {
+	// Si la ruta es para PDF, aplicar headers específicos
+	if (req.path.includes('/pdf') || req.path.includes('.pdf')) {
+		res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+		res.setHeader('X-Content-Type-Options', 'nosniff');
+		res.setHeader('Content-Security-Policy', 'frame-src \'self\' data: blob:; object-src \'self\' data: blob:;');
+	}
+	next();
+});
+
 // Middleware de seguridad
 app.use(
 	helmet({
-		contentSecurityPolicy: {
+		contentSecurityPolicy: isProduction ? false : {
 			directives: {
 				"default-src": ["'self'"],
-				"frame-src": ["'self'", "data:", "blob:"],
-				"object-src": ["'none'"],
-				"script-src": ["'self'", "'unsafe-inline'"],
+				"frame-src": ["'self'", "data:", "blob:", "'unsafe-inline'"],
+				"object-src": ["'self'", "data:", "blob:"],
+				"script-src": ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
 				"style-src": ["'self'", "'unsafe-inline'"],
-				"img-src": ["'self'", "data:", "https:"],
+				"img-src": ["'self'", "data:", "blob:", "https:"],
 				"media-src": ["'self'", "data:", "blob:"],
-				"connect-src": ["'self'", "data:", "https:"],
+				"connect-src": ["'self'", "data:", "blob:", "https:"],
+				"font-src": ["'self'", "data:", "https:"],
+				"worker-src": ["'self'", "blob:"],
+				"child-src": ["'self'", "data:", "blob:"],
 				"frame-ancestors": [
 					"'self'",
 					"http://localhost:5173",
 					"http://localhost:5174",
 					"http://localhost:3000",
+					process.env.FRONTEND_URL || "'self'",
 				],
 			},
 		},
+		crossOriginEmbedderPolicy: false,
+		crossOriginResourcePolicy: { policy: "cross-origin" },
 	})
 );
 app.use(
@@ -64,9 +85,12 @@ app.use(
 			"http://localhost:5173",
 			"http://localhost:5174",
 			"http://localhost:3000",
+			"https://appbamconect360-production.up.railway.app",
 			process.env.FRONTEND_URL || "*",
 		],
 		credentials: true,
+		methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+		allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
 	})
 );
 
@@ -79,6 +103,15 @@ app.use((req, res, next) => {
 // Middleware específico para debuggear rutas API
 app.use("/api/*", (req, res, next) => {
 	console.log(`🔍 API Route Hit: ${req.method} ${req.path}`);
+	next();
+});
+
+// Middleware específico para rutas de PDF que necesitan headers especiales
+app.use("/api/pdf*", (req, res, next) => {
+	// Headers específicos para PDFs y contenido embebido
+	res.setHeader('X-Content-Type-Options', 'nosniff');
+	res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+	res.setHeader('Content-Security-Policy', 'frame-src \'self\' data: blob:');
 	next();
 });
 
@@ -164,22 +197,30 @@ const servePdfDocument = async (req, res) => {
 		}
 
 		console.log(`🔍 [PDF ROUTE] Verificando archivo en: ${pdf.filePath}`);
-		console.log(`🔍 [PDF ROUTE] Archivo existe: ${fs.existsSync(pdf.filePath)}`);
-		
+		console.log(
+			`🔍 [PDF ROUTE] Archivo existe: ${fs.existsSync(pdf.filePath)}`
+		);
+
 		if (!pdf.filePath || !fs.existsSync(pdf.filePath)) {
 			console.log(`❌ [PDF ROUTE] Archivo no existe: ${pdf.filePath}`);
 			console.log(`📁 [PDF ROUTE] Contenido del directorio uploads:`);
 			try {
-				const uploadsDir = path.join(__dirname, 'uploads');
+				const uploadsDir = path.join(__dirname, "uploads");
 				console.log(`📁 [PDF ROUTE] Directorio uploads: ${uploadsDir}`);
-				console.log(`📁 [PDF ROUTE] Existe directorio: ${fs.existsSync(uploadsDir)}`);
+				console.log(
+					`📁 [PDF ROUTE] Existe directorio: ${fs.existsSync(uploadsDir)}`
+				);
 				if (fs.existsSync(uploadsDir)) {
 					const files = fs.readdirSync(uploadsDir);
-					console.log(`📁 [PDF ROUTE] Archivos en uploads: ${files.length} archivos`);
-					files.forEach(file => console.log(`  - ${file}`));
+					console.log(
+						`📁 [PDF ROUTE] Archivos en uploads: ${files.length} archivos`
+					);
+					files.forEach((file) => console.log(`  - ${file}`));
 				}
 			} catch (dirError) {
-				console.log(`❌ [PDF ROUTE] Error leyendo directorio: ${dirError.message}`);
+				console.log(
+					`❌ [PDF ROUTE] Error leyendo directorio: ${dirError.message}`
+				);
 			}
 			return res
 				.status(404)
@@ -220,23 +261,27 @@ const servePdfAsBase64 = async (req, res) => {
 		}
 
 		console.log(`� [PDF BASE64] PDF encontrado: ${pdf.filename}`);
-		
+
 		// Buscar archivo físico por nombre de archivo
-		const uploadsDir = path.join(__dirname, 'uploads');
-		const availableFiles = fs.readdirSync(uploadsDir).filter(file => file.endsWith('.pdf'));
-		console.log(`� [PDF BASE64] Archivos disponibles: ${availableFiles.join(', ')}`);
-		
+		const uploadsDir = path.join(__dirname, "uploads");
+		const availableFiles = fs
+			.readdirSync(uploadsDir)
+			.filter((file) => file.endsWith(".pdf"));
+		console.log(
+			`� [PDF BASE64] Archivos disponibles: ${availableFiles.join(", ")}`
+		);
+
 		// Estrategia 1: Buscar archivo que coincida exactamente con el nombre
 		let targetFilePath = null;
-		
+
 		// Primero buscar por nombre exacto en los archivos disponibles
-		const exactMatch = availableFiles.find(file => {
+		const exactMatch = availableFiles.find((file) => {
 			// Extraer el nombre original del archivo generado
 			// Los archivos se guardan como: pdf-timestamp-random.pdf
 			// Pero necesitamos mapear por nombre original
 			return false; // Por ahora no hay mapeo directo
 		});
-		
+
 		// Estrategia 2: Buscar por orden de subida (más reciente primero)
 		if (!targetFilePath && availableFiles.length > 0) {
 			// Ordenar archivos por fecha de creación (timestamp en el nombre)
@@ -248,29 +293,39 @@ const servePdfAsBase64 = async (req, res) => {
 				}
 				return 0;
 			});
-			
-			console.log(`📅 [PDF BASE64] Archivos ordenados por fecha: ${sortedFiles.join(', ')}`);
-			
+
+			console.log(
+				`📅 [PDF BASE64] Archivos ordenados por fecha: ${sortedFiles.join(
+					", "
+				)}`
+			);
+
 			// Mapeo manual basado en el nombre del PDF solicitado
 			const filename = pdf.filename.toLowerCase();
-			if (filename.includes('apertura') || filename.includes('cuenta')) {
+			if (filename.includes("apertura") || filename.includes("cuenta")) {
 				// Para "Manual de apertura de cuenta ejemplo.pdf", usar el archivo más reciente
 				targetFilePath = path.join(uploadsDir, sortedFiles[0]);
-				console.log(`🎯 [PDF BASE64] Mapeando "apertura de cuenta" a: ${sortedFiles[0]}`);
+				console.log(
+					`🎯 [PDF BASE64] Mapeando "apertura de cuenta" a: ${sortedFiles[0]}`
+				);
 			} else {
 				// Para otros archivos, usar el primero disponible
 				targetFilePath = path.join(uploadsDir, sortedFiles[0]);
-				console.log(`� [PDF BASE64] Usando archivo por defecto: ${sortedFiles[0]}`);
+				console.log(
+					`� [PDF BASE64] Usando archivo por defecto: ${sortedFiles[0]}`
+				);
 			}
 		}
-		
+
 		// Verificar que el archivo existe
 		if (!targetFilePath || !fs.existsSync(targetFilePath)) {
-			console.log(`❌ [PDF BASE64] No se pudo encontrar archivo para: ${pdf.filename}`);
-			return res.status(404).json({ 
+			console.log(
+				`❌ [PDF BASE64] No se pudo encontrar archivo para: ${pdf.filename}`
+			);
+			return res.status(404).json({
 				error: "Archivo PDF no encontrado",
 				filename: pdf.filename,
-				availableFiles: availableFiles
+				availableFiles: availableFiles,
 			});
 		}
 
@@ -278,14 +333,24 @@ const servePdfAsBase64 = async (req, res) => {
 
 		// Leer el archivo y convertirlo a Base64
 		const pdfBuffer = fs.readFileSync(targetFilePath);
-		const base64Data = pdfBuffer.toString('base64');
-		
-		console.log(`📄 [PDF BASE64] PDF convertido a Base64: ${pdf.filename} (${pdfBuffer.length} bytes)`);
-		
+		const base64Data = pdfBuffer.toString("base64");
+
+		console.log(
+			`📄 [PDF BASE64] PDF convertido a Base64: ${pdf.filename} (${pdfBuffer.length} bytes)`
+		);
+
+		// Configurar headers específicos para PDFs
+		res.setHeader('Content-Type', 'application/json');
+		res.setHeader('Access-Control-Allow-Origin', '*');
+		res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+		res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+		res.setHeader('X-Content-Type-Options', 'nosniff');
+		res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+
 		res.json({
 			filename: pdf.filename,
 			base64: base64Data,
-			contentType: 'application/pdf'
+			contentType: "application/pdf",
 		});
 	} catch (error) {
 		console.error("❌ [PDF BASE64] Error:", error);
@@ -310,16 +375,31 @@ app.get("/api/pdf/:id", (req, res) => {
 });
 app.get("/api/pdf/:id/base64", servePdfAsBase64);
 
+// Ruta de diagnóstico para CSP
+app.get("/api/debug/csp-test", (req, res) => {
+	res.setHeader('Content-Security-Policy', 'frame-src \'self\' data: blob:');
+	res.json({
+		environment: isProduction ? "production" : "development",
+		cspDisabled: isProduction,
+		message: "CSP Test - iframe con data: URLs debería funcionar",
+		headers: {
+			'Content-Security-Policy': 'frame-src \'self\' data: blob:',
+			'X-Frame-Options': 'SAMEORIGIN'
+		}
+	});
+});
+
 // Ruta de debug para mapear PDFs
 app.get("/api/debug/pdf-mapping", async (req, res) => {
 	try {
-		console.log('🔍 [DEBUG] Iniciando mapeo de PDFs...');
-		
+		console.log("🔍 [DEBUG] Iniciando mapeo de PDFs...");
+
 		// Obtener archivos físicos
-		const uploadsDir = path.join(__dirname, 'uploads');
-		const physicalFiles = fs.readdirSync(uploadsDir)
-			.filter(file => file.endsWith('.pdf'))
-			.map(file => {
+		const uploadsDir = path.join(__dirname, "uploads");
+		const physicalFiles = fs
+			.readdirSync(uploadsDir)
+			.filter((file) => file.endsWith(".pdf"))
+			.map((file) => {
 				const filePath = path.join(uploadsDir, file);
 				const stats = fs.statSync(filePath);
 				const timestamp = file.match(/pdf-(\d+)-/)?.[1];
@@ -327,40 +407,42 @@ app.get("/api/debug/pdf-mapping", async (req, res) => {
 					filename: file,
 					size: stats.size,
 					created: stats.birthtime,
-					timestamp: timestamp ? new Date(parseInt(timestamp)) : null
+					timestamp: timestamp ? new Date(parseInt(timestamp)) : null,
 				};
 			})
 			.sort((a, b) => b.created - a.created);
-		
+
 		// Obtener PDFs de la base de datos
 		const dbPdfs = await PDFContent.find({ isActive: true })
-			.select('filename filePath uploadDate')
+			.select("filename filePath uploadDate")
 			.sort({ uploadDate: -1 });
-		
+
 		const mapping = {
 			physicalFiles: physicalFiles,
 			databasePdfs: dbPdfs,
-			suggestions: []
+			suggestions: [],
 		};
-		
+
 		// Crear sugerencias de mapeo
 		dbPdfs.forEach((dbPdf, index) => {
 			const suggestion = {
 				dbId: dbPdf._id,
 				dbFilename: dbPdf.filename,
 				dbUploadDate: dbPdf.uploadDate,
-				suggestedPhysicalFile: physicalFiles[index]?.filename || 'No disponible',
-				confidence: physicalFiles[index] ? 'alta' : 'baja'
+				suggestedPhysicalFile:
+					physicalFiles[index]?.filename || "No disponible",
+				confidence: physicalFiles[index] ? "alta" : "baja",
 			};
 			mapping.suggestions.push(suggestion);
 		});
-		
-		console.log(`📊 [DEBUG] Archivos físicos: ${physicalFiles.length}, PDFs en BD: ${dbPdfs.length}`);
+
+		console.log(
+			`📊 [DEBUG] Archivos físicos: ${physicalFiles.length}, PDFs en BD: ${dbPdfs.length}`
+		);
 		res.json(mapping);
-		
 	} catch (error) {
-		console.error('❌ [DEBUG] Error en mapeo:', error);
-		res.status(500).json({ error: 'Error obteniendo mapeo de PDFs' });
+		console.error("❌ [DEBUG] Error en mapeo:", error);
+		res.status(500).json({ error: "Error obteniendo mapeo de PDFs" });
 	}
 });
 
@@ -368,14 +450,16 @@ app.get("/api/debug/pdf-mapping", async (req, res) => {
 app.get("/api/debug/pdf-files", async (req, res) => {
 	try {
 		const pdfs = await PDFContent.find();
-		const uploadsDir = path.join(__dirname, 'uploads');
-		const filesOnDisk = fs.existsSync(uploadsDir) ? fs.readdirSync(uploadsDir) : [];
-		
+		const uploadsDir = path.join(__dirname, "uploads");
+		const filesOnDisk = fs.existsSync(uploadsDir)
+			? fs.readdirSync(uploadsDir)
+			: [];
+
 		const report = {
 			totalPdfsInDB: pdfs.length,
 			totalFilesOnDisk: filesOnDisk.length,
 			filesOnDisk,
-			inconsistencies: []
+			inconsistencies: [],
 		};
 
 		for (const pdf of pdfs) {
@@ -385,7 +469,7 @@ app.get("/api/debug/pdf-files", async (req, res) => {
 					id: pdf._id,
 					filename: pdf.filename,
 					expectedPath: pdf.filePath,
-					exists: false
+					exists: false,
 				});
 			}
 		}
@@ -401,26 +485,26 @@ app.post("/api/debug/toggle-pdf/:id", async (req, res) => {
 	try {
 		const { id } = req.params;
 		const { isActive } = req.body;
-		
+
 		const pdf = await PDFContent.findByIdAndUpdate(
-			id, 
-			{ isActive: isActive }, 
+			id,
+			{ isActive: isActive },
 			{ new: true }
 		);
-		
+
 		if (!pdf) {
 			return res.status(404).json({ error: "PDF no encontrado" });
 		}
-		
-		res.json({ 
-			success: true, 
-			message: `PDF ${isActive ? 'activado' : 'desactivado'} correctamente`,
+
+		res.json({
+			success: true,
+			message: `PDF ${isActive ? "activado" : "desactivado"} correctamente`,
 			pdf: {
 				id: pdf._id,
 				filename: pdf.filename,
 				isActive: pdf.isActive,
-				filePath: pdf.filePath
-			}
+				filePath: pdf.filePath,
+			},
 		});
 	} catch (error) {
 		res.status(500).json({ error: error.message });
@@ -492,14 +576,22 @@ const upload = multer({
 	},
 });
 
-
-
-
-
-
-
 // Servir archivos estáticos del frontend después de exponer las rutas de PDF
-app.use(express.static(frontendPath));
+app.use(express.static(frontendPath, {
+	setHeaders: (res, path, stat) => {
+		// Headers específicos para archivos PDF
+		if (path.endsWith('.pdf')) {
+			res.setHeader('Content-Type', 'application/pdf');
+			res.setHeader('X-Content-Type-Options', 'nosniff');
+			res.setHeader('Content-Security-Policy', 'frame-src \'self\' data: blob:');
+		}
+		// Headers para archivos HTML
+		if (path.endsWith('.html')) {
+			res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+			res.setHeader('X-Content-Type-Options', 'nosniff');
+		}
+	}
+}));
 
 // Conectar a MongoDB
 const mongoUri =
@@ -847,11 +939,21 @@ app.use((error, req, res, next) => {
 // Ruta catch-all para React Router
 app.get("*", (req, res) => {
 	console.log(`🌍 Catch-all ruta: ${req.path}`);
-	console.log(`🔍 Catch-all - ¿Empieza con /api?: ${req.path.startsWith("/api")}`);
-	console.log(`🔍 Catch-all - ¿Empieza con /documents?: ${req.path.startsWith("/documents")}`);
+	console.log(
+		`🔍 Catch-all - ¿Empieza con /api?: ${req.path.startsWith("/api")}`
+	);
+	console.log(
+		`🔍 Catch-all - ¿Empieza con /documents?: ${req.path.startsWith(
+			"/documents"
+		)}`
+	);
 
 	// Excluir rutas específicas que no deben ser manejadas por React Router
-	if (req.path.startsWith("/api") || req.path.startsWith("/documents") || req.path.startsWith("/files")) {
+	if (
+		req.path.startsWith("/api") ||
+		req.path.startsWith("/documents") ||
+		req.path.startsWith("/files")
+	) {
 		console.log(`❌ Ruta de API no encontrada: ${req.path}`);
 		return res.status(404).json({ error: "Ruta de API no encontrada" });
 	}

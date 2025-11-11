@@ -26,6 +26,7 @@ export default function PDFViewer() {
 	const [averageRating, setAverageRating] = useState(0);
 	const [totalRatings, setTotalRatings] = useState(0);
 	const [showRatingSuccess, setShowRatingSuccess] = useState(false);
+	const [iframeError, setIframeError] = useState(false);
 
 	useEffect(() => {
 		// Obtener el nombre del archivo desde la URL
@@ -608,7 +609,11 @@ export default function PDFViewer() {
 								📁 Visualizador de PDF
 							</h2>
 							<a
-								href={pdfBase64 ? `data:application/pdf;base64,${pdfBase64}` : `${PDF_SERVE_URL}/${pdfData._id}`}
+								href={
+									pdfBase64
+										? pdfBase64
+										: `${PDF_SERVE_URL}/${pdfData._id}`
+								}
 								target="_blank"
 								rel="noopener noreferrer"
 								style={{
@@ -643,28 +648,75 @@ export default function PDFViewer() {
 								background: "#f8fafc",
 							}}
 						>
-							<iframe
-								src={pdfBase64 || `${PDF_SERVE_URL}/${pdfData._id}`}
-								onLoad={() =>
-									console.log(
-										"📄 PDF cargado en iframe:",
-										pdfBase64 ? "Base64 Data URL" : `${PDF_SERVE_URL}/${pdfData._id}`
-									)
-								}
-								onError={() =>
-									console.error(
-										"❌ Error cargando PDF en iframe:",
-										pdfBase64 ? "Base64 Data URL" : `${PDF_SERVE_URL}/${pdfData._id}`
-									)
-								}
-								style={{
-									width: "100%",
-									height: "600px",
-									border: "none",
-									display: "block",
-								}}
-								title={`PDF: ${filename}`}
-							/>
+							{iframeError ? (
+								<div
+									style={{
+										width: "100%",
+										height: "600px",
+										border: "2px dashed #e2e8f0",
+										borderRadius: "8px",
+										display: "flex",
+										flexDirection: "column",
+										alignItems: "center",
+										justifyContent: "center",
+										background: "#f8fafc",
+										color: "#64748b",
+									}}
+								>
+									<div style={{ fontSize: "48px", marginBottom: "16px" }}>📄</div>
+									<div style={{ fontSize: "18px", fontWeight: "600", marginBottom: "8px" }}>
+										Error cargando PDF
+									</div>
+									<div style={{ textAlign: "center", marginBottom: "16px" }}>
+										El PDF no se puede mostrar en el navegador.<br />
+										Puedes descargarlo usando el botón de arriba.
+									</div>
+									<button
+										onClick={() => setIframeError(false)}
+										style={{
+											background: "#3b82f6",
+											color: "white",
+											border: "none",
+											padding: "8px 16px",
+											borderRadius: "6px",
+											cursor: "pointer",
+										}}
+									>
+										Intentar de nuevo
+									</button>
+								</div>
+							) : (
+								<iframe
+									src={pdfBase64 || `${PDF_SERVE_URL}/${pdfData._id}`}
+									onLoad={() => {
+										console.log(
+											"📄 PDF cargado en iframe:",
+											pdfBase64
+												? "Base64 Data URL"
+												: `${PDF_SERVE_URL}/${pdfData._id}`
+										);
+										setIframeError(false);
+									}}
+									onError={() => {
+										console.error(
+											"❌ Error cargando PDF en iframe:",
+											pdfBase64
+												? "Base64 Data URL"
+												: `${PDF_SERVE_URL}/${pdfData._id}`
+										);
+										setIframeError(true);
+									}}
+									style={{
+										width: "100%",
+										height: "600px",
+										border: "none",
+										display: "block",
+									}}
+									title={`PDF: ${filename}`}
+									allow="fullscreen"
+									sandbox="allow-same-origin allow-scripts allow-forms"
+								/>
+							)}
 						</div>
 					</div>
 
