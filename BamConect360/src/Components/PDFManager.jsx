@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 const API_BASE_URL =
 	window.location.hostname === "localhost"
 		? "http://localhost:3001/api"
-		: `${window.location.origin}/api`;
+		: `${window.location.protocol}//${window.location.host}/api`;
 
 export default function PDFManager() {
 	const [pdfs, setPdfs] = useState([]);

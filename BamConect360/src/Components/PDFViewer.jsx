@@ -5,7 +5,7 @@ import logoImpresion from "../assets/logo-impresion.png";
 const API_BASE_URL =
 	window.location.hostname === "localhost"
 		? "http://localhost:3001/api"
-		: `${window.location.origin}/api`;
+		: `${window.location.protocol}//${window.location.host}/api`;
 
 export default function PDFViewer() {
 	const [pdfData, setPdfData] = useState(null);
@@ -606,18 +606,66 @@ export default function PDFViewer() {
 								borderRadius: "12px",
 								overflow: "hidden",
 								background: "#f8fafc",
+								minHeight: "600px",
+								display: "flex",
+								flexDirection: "column",
+								alignItems: "center",
+								justifyContent: "center",
+								padding: "20px",
 							}}
 						>
-							<iframe
-								src={`${API_BASE_URL}/pdf/${pdfData._id}`}
-								style={{
-									width: "100%",
-									height: "600px",
-									border: "none",
-									display: "block",
+							<div style={{ marginBottom: "20px", textAlign: "center" }}>
+								<h3 style={{ color: "#374151", marginBottom: "10px" }}>
+									📄 {filename}
+								</h3>
+								<p style={{ color: "#6b7280", fontSize: "14px" }}>
+									Click en el botón de abajo para abrir el PDF en una nueva pestaña
+								</p>
+							</div>
+							<button
+								onClick={() => {
+									const pdfUrl = `${API_BASE_URL}/pdf/${pdfData._id}`;
+									console.log("🔗 Abriendo PDF en nueva pestaña:", pdfUrl);
+									window.open(pdfUrl, "_blank", "noopener,noreferrer");
 								}}
-								title={`PDF: ${filename}`}
-							/>
+								style={{
+									background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
+									color: "white",
+									padding: "12px 24px",
+									borderRadius: "8px",
+									border: "none",
+									cursor: "pointer",
+									fontSize: "16px",
+									fontWeight: "600",
+									transition: "all 0.3s ease",
+								}}
+								onMouseEnter={(e) => {
+									e.target.style.transform = "scale(1.05)";
+								}}
+								onMouseLeave={(e) => {
+									e.target.style.transform = "scale(1)";
+								}}
+							>
+								🔗 Abrir PDF en nueva pestaña
+							</button>
+							<div style={{ marginTop: "20px" }}>
+								<iframe
+									src={`${API_BASE_URL}/pdf/${pdfData._id}`}
+									style={{
+										width: "100%",
+										height: "500px",
+										border: "1px solid #d1d5db",
+										borderRadius: "8px",
+									}}
+									title={`PDF: ${filename}`}
+									onError={(e) => {
+										console.error("Error cargando iframe:", e);
+									}}
+									onLoad={() => {
+										console.log("✅ PDF cargado en iframe");
+									}}
+								/>
+							</div>
 						</div>
 					</div>
 

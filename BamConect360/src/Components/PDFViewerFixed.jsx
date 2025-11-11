@@ -5,7 +5,7 @@ import logoImpresion from "../assets/logo-impresion.png";
 const API_BASE_URL =
 	window.location.hostname === "localhost"
 		? "http://localhost:3001/api"
-		: `${window.location.origin}/api`;
+		: `${window.location.protocol}//${window.location.host}/api`;
 
 export default function PDFViewer() {
 	const [pdfData, setPdfData] = useState(null);
@@ -288,7 +288,8 @@ export default function PDFViewer() {
 							</span>
 						</div>
 					</div>
-				</header>				<div
+				</header>{" "}
+				<div
 					style={{
 						maxWidth: "800px",
 						margin: "0 auto",

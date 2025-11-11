@@ -357,12 +357,14 @@ app.get("/api/pdf/:id/data", async (req, res) => {
 // Ruta para obtener un PDF específico (archivo)
 app.get("/api/pdf/:id", async (req, res) => {
 	try {
+		console.log(`📥 Ruta PDF llamada con ID: ${req.params.id}`);
 		// Validar que el ID sea válido
 		if (
 			!req.params.id ||
 			req.params.id === "undefined" ||
 			req.params.id.length !== 24
 		) {
+			console.log(`❌ ID inválido: ${req.params.id}`);
 			return res.status(400).json({ error: "ID de PDF inválido" });
 		}
 
@@ -577,7 +579,9 @@ app.use((error, req, res, next) => {
 
 // Ruta catch-all para React Router
 app.get("*", (req, res) => {
+	console.log(`🌍 Catch-all ruta: ${req.path}`);
 	if (req.path.startsWith("/api")) {
+		console.log(`❌ Ruta de API no encontrada: ${req.path}`);
 		return res.status(404).json({ error: "Ruta de API no encontrada" });
 	}
 
