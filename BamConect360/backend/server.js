@@ -244,6 +244,38 @@ app.get("/api/pdf/:id", (req, res) => {
 });
 app.get("/api/pdf/:id/base64", servePdfAsBase64);
 
+// Endpoint para verificar inconsistencias
+app.get("/api/debug/pdf-files", async (req, res) => {
+	try {
+		const pdfs = await PDFContent.find();
+		const uploadsDir = path.join(__dirname, 'uploads');
+		const filesOnDisk = fs.existsSync(uploadsDir) ? fs.readdirSync(uploadsDir) : [];
+		
+		const report = {
+			totalPdfsInDB: pdfs.length,
+			totalFilesOnDisk: filesOnDisk.length,
+			filesOnDisk,
+			inconsistencies: []
+		};
+
+		for (const pdf of pdfs) {
+			const fileExists = fs.existsSync(pdf.filePath);
+			if (!fileExists) {
+				report.inconsistencies.push({
+					id: pdf._id,
+					filename: pdf.filename,
+					expectedPath: pdf.filePath,
+					exists: false
+				});
+			}
+		}
+
+		res.json(report);
+	} catch (error) {
+		res.status(500).json({ error: error.message });
+	}
+});
+
 // Servir archivos estáticos del frontend
 const frontendPath =
 	process.env.NODE_ENV === "production"
