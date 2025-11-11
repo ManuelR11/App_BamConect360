@@ -276,6 +276,37 @@ app.get("/api/debug/pdf-files", async (req, res) => {
 	}
 });
 
+// Endpoint para activar/desactivar PDFs
+app.post("/api/debug/toggle-pdf/:id", async (req, res) => {
+	try {
+		const { id } = req.params;
+		const { isActive } = req.body;
+		
+		const pdf = await PDFContent.findByIdAndUpdate(
+			id, 
+			{ isActive: isActive }, 
+			{ new: true }
+		);
+		
+		if (!pdf) {
+			return res.status(404).json({ error: "PDF no encontrado" });
+		}
+		
+		res.json({ 
+			success: true, 
+			message: `PDF ${isActive ? 'activado' : 'desactivado'} correctamente`,
+			pdf: {
+				id: pdf._id,
+				filename: pdf.filename,
+				isActive: pdf.isActive,
+				filePath: pdf.filePath
+			}
+		});
+	} catch (error) {
+		res.status(500).json({ error: error.message });
+	}
+});
+
 // Servir archivos estáticos del frontend
 const frontendPath =
 	process.env.NODE_ENV === "production"
