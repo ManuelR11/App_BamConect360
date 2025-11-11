@@ -117,6 +117,48 @@ app.get("/sw.js", (req, res) => {
 	res.sendFile(path.join(frontendPath, "sw.js"));
 });
 
+// IMPORTANTE: Ruta para documentos PDF - DEBE ir antes de express.static
+app.get("/documents/:id", async (req, res) => {
+	try {
+		console.log(`📄 Solicitud de documento: ${req.params.id}`);
+		
+		// Validar que el ID sea válido
+		if (
+			!req.params.id ||
+			req.params.id === "undefined" ||
+			req.params.id.length !== 24
+		) {
+			return res.status(400).json({ error: "ID de PDF inválido" });
+		}
+
+		const pdf = await PDFContent.findById(req.params.id);
+		if (!pdf || !pdf.isActive) {
+			return res.status(404).json({ error: "PDF no encontrado" });
+		}
+
+		// Verificar si el archivo PDF existe
+		if (!pdf.filePath || !fs.existsSync(pdf.filePath)) {
+			return res
+				.status(404)
+				.json({ error: "Archivo PDF no encontrado en el servidor" });
+		}
+
+		// Configurar headers para mostrar PDF en el navegador
+		res.setHeader("Content-Type", "application/pdf");
+		res.setHeader("Content-Disposition", `inline; filename="${pdf.filename}"`);
+		res.setHeader("X-Frame-Options", "SAMEORIGIN");
+		res.setHeader("Cache-Control", "public, max-age=3600");
+		res.setHeader("Access-Control-Allow-Origin", "*");
+
+		console.log(`✅ Sirviendo PDF: ${pdf.filename}`);
+		// Servir el archivo PDF real
+		res.sendFile(path.resolve(pdf.filePath));
+	} catch (error) {
+		console.error("Error sirviendo documento:", error);
+		res.status(500).json({ error: "Error obteniendo el PDF" });
+	}
+});
+
 app.use(express.static(frontendPath));
 
 // Crear directorio para uploads si no existe
@@ -360,8 +402,8 @@ app.get("/api/pdf/:id/data", async (req, res) => {
 	}
 });
 
-// Ruta para obtener un PDF específico (archivo) - Nueva ruta con extensión
-app.get("/api/pdf/:id.pdf", async (req, res) => {
+// Ruta para obtener un PDF específico (archivo) - Ruta directa sin API
+app.get("/documents/:id", async (req, res) => {
 	try {
 		// Validar que el ID sea válido
 		if (
@@ -399,7 +441,7 @@ app.get("/api/pdf/:id.pdf", async (req, res) => {
 	}
 });
 
-// Ruta para obtener un PDF específico (archivo) - Ruta original como backup
+// Ruta para obtener un PDF específico (archivo) - Ruta API original como backup
 app.get("/api/pdf/:id", async (req, res) => {
 	try {
 		// Validar que el ID sea válido

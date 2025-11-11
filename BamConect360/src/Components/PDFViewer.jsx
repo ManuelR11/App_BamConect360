@@ -573,7 +573,7 @@ export default function PDFViewer() {
 								📁 Visualizador de PDF
 							</h2>
 							<a
-								href={`${API_BASE_URL}/pdf/${pdfData._id}.pdf`}
+								href={`${window.location.origin}/documents/${pdfData._id}`}
 								target="_blank"
 								rel="noopener noreferrer"
 								style={{
@@ -609,7 +609,7 @@ export default function PDFViewer() {
 							}}
 						>
 							<iframe
-								src={`${API_BASE_URL}/pdf/${pdfData._id}.pdf`}
+								src={`${window.location.origin}/documents/${pdfData._id}`}
 								style={{
 									width: "100%",
 									height: "600px",
