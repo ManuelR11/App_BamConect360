@@ -389,154 +389,50 @@ const servePdfAsBase64 = async (req, res) => {
 
 				if (availableFiles.length > 0) {
 					console.log(
-						`🔍 [PDF BASE64] Iniciando mapeo inteligente para: "${pdf.filename}" (ID: ${pdf._id})`
+						`🔍 [PDF BASE64] Mapeo DIRECTO para: "${pdf.filename}" (ID: ${pdf._id})`
 					);
 
-					// FUNCIÓN para generar ID descriptivo basado en el título
-					const generateDescriptiveId = (filename) => {
-						return filename
-							.toLowerCase()
-							.replace(/\s+/g, '-')                    // espacios -> guiones
-							.replace(/[áàäâ]/g, 'a')                 // acentos
-							.replace(/[éèëê]/g, 'e')
-							.replace(/[íìïî]/g, 'i')
-							.replace(/[óòöô]/g, 'o')
-							.replace(/[úùüû]/g, 'u')
-							.replace(/[ñ]/g, 'n')
-							.replace(/[^a-z0-9\-]/g, '')             // solo letras, números y guiones
-							.replace(/\.pdf$/, '')                   // quitar .pdf
-							.substring(0, 30);                      // máximo 30 caracteres
-					};
-
-					// PRIORIDAD 1: Mapeo específico por ID descriptivo (más fácil de identificar)
-					const descriptiveIdMapping = {
-						// IDs descriptivos generados automáticamente
-						[generateDescriptiveId("Pago de Servicios.pdf")]: "pdf-1762839910147-424431997.pdf", // pago-de-servicios
-						[generateDescriptiveId("Solicitud de Tarjeta.pdf")]: "pdf-1762839890353-607425718.pdf", // solicitud-de-tarjeta
-						[generateDescriptiveId("Manual de apertura de cuenta ejemplo.pdf")]: "pdf-1762839898137-325926996.pdf", // manual-de-apertura-de-cuenta-ej
-						[generateDescriptiveId("Gestión de Chequeras.pdf")]: "pdf-1762839882812-24906428.pdf", // gestion-de-chequeras
-						[generateDescriptiveId("Solicitud de Prestamos.pdf")]: "pdf-1762839917088-443931258.pdf", // solicitud-de-prestamos
-						[generateDescriptiveId("Manual de inversion a plazo fijo.pdf")]: "pdf-1762839922766-525834752.pdf", // manual-de-inversion-a-plazo-fijo
-						[generateDescriptiveId("Seguimiento de Prestamos.pdf")]: "pdf-1762839927397-384975741.pdf", // seguimiento-de-prestamos
-						[generateDescriptiveId("Consulta de Saldos y Movimientos.pdf")]: "pdf-1762839955729-521323488.pdf", // consulta-de-saldos-y-movimiento
-					};
-
-					// También mantener mapeo por IDs originales para compatibilidad
-					const originalIdMapping = {
-						"6913814a8717b6e77a788616": "pdf-1762839910147-424431997.pdf", // Pago de Servicios
-						"6913815c8717b6e77a788622": "pdf-1762839890353-607425718.pdf", // Solicitud de Tarjeta 
-						"6913813b8717b6e77a78860e": "pdf-1762839898137-325926996.pdf", // Manual de apertura
-						"6913d6cf7a96980957a281a": "pdf-1762839922766-525834752.pdf", // Manual de inversion a plazo fijo
-						// Agregar más IDs según sean necesarios
-					};
-
-					// Combinar ambos mapeos
-					const idMapping = { ...originalIdMapping, ...descriptiveIdMapping };
-
-					// PRIORIDAD 2: Mapeo específico por nombre (ACTUALIZADO con todos los PDFs)
-					const specificMapping = {
-						"Solicitud de Tarjeta.pdf": "pdf-1762839890353-607425718.pdf", // Tarjetas
-						"Solicitud de Prestamos.pdf": "pdf-1762839917088-443931258.pdf", // Préstamos
-						"Pago de Servicios.pdf": "pdf-1762839910147-424431997.pdf", // Servicios
-						"Gestión de Chequeras.pdf": "pdf-1762839882812-24906428.pdf", // Chequeras (original)
-						"Manual de apertura de cuenta ejemplo.pdf": "pdf-1762839898137-325926996.pdf", // Apertura
-						"Manual de inversion a plazo fijo.pdf": "pdf-1762839922766-525834752.pdf", // Inversión a plazo fijo
-						"Seguimiento de Prestamos.pdf": "pdf-1762839927397-384975741.pdf", // Seguimiento
-						"Consulta de Saldos y Movimientos.pdf": "pdf-1762839955729-521323488.pdf", // Consulta saldos
+					// MAPEO DIRECTO CON IDs HARDCODEADOS (basado en la imagen enviada)
+					const directMapping = {
+						// IDs exactos de la base de datos -> archivos físicos
+						"6913e044e021447199000d98a": "pdf-1762839882812-24906428.pdf", // Gestion de Chequeras.pdf
+						"6913e04fe021447199000d98e": "pdf-1762839955729-521323488.pdf", // Consulta de Saldos y Movimientos.pdf
+						"6913e05be021447199000d992": "pdf-1762839898137-325926996.pdf", // Manual de apertura de cuenta ejemplo.pdf
+						"6913e063e021447199000d996": "pdf-1762839922766-525834752.pdf", // Manual de inversion a plazo fijo.pdf
+						"6913e078e021447199000d99a": "pdf-1762839910147-424431997.pdf", // Pago de Servicios.pdf
+						"6913e07ee021447199000d99e": "pdf-1762839927397-384975741.pdf", // Seguimiento de Prestamos.pdf
+						"6913e084e021447199000d9a2": "pdf-1762839917088-443931258.pdf", // Solicitud de Prestamos.pdf
+						"6913e088e021447199000d9a6": "pdf-1762839890353-607425718.pdf", // Solicitud de Tarjeta.pdf
 					};
 
 					let matchingFile = null;
+					const currentId = pdf._id.toString();
 
-					// 1. PRIORIDAD MÁXIMA: Buscar por ID específico (original o descriptivo)
-					const descriptiveKey = generateDescriptiveId(pdf.filename);
-					const originalId = pdf._id.toString();
-					
-					if (idMapping[originalId] && availableFiles.includes(idMapping[originalId])) {
-						matchingFile = idMapping[originalId];
+					// BUSCAR DIRECTAMENTE POR ID
+					if (directMapping[currentId] && availableFiles.includes(directMapping[currentId])) {
+						matchingFile = directMapping[currentId];
 						console.log(
-							`🎯 [PDF BASE64] Mapeo por ID original encontrado: ${originalId} -> ${matchingFile}`
+							`🎯 [PDF BASE64] Mapeo DIRECTO encontrado: ${currentId} (${pdf.filename}) -> ${matchingFile}`
 						);
-					} else if (idMapping[descriptiveKey] && availableFiles.includes(idMapping[descriptiveKey])) {
-						matchingFile = idMapping[descriptiveKey];
-						console.log(
-							`🎯 [PDF BASE64] Mapeo por ID descriptivo encontrado: "${pdf.filename}" -> ${descriptiveKey} -> ${matchingFile}`
-						);
-					}
-					// 2. SEGUNDA PRIORIDAD: Buscar por nombre específico
-					else if (specificMapping[pdf.filename] && availableFiles.includes(specificMapping[pdf.filename])) {
-						matchingFile = specificMapping[pdf.filename];
-						console.log(
-							`🎯 [PDF BASE64] Mapeo por nombre encontrado: "${pdf.filename}" -> ${matchingFile}`
-						);
-					}
-					// 3. BUSQUEDA POR COINCIDENCIA DE NOMBRE (solo si no hay mapeo específico)
-					else {
-						console.log(`⚠️ [PDF BASE64] No hay mapeo específico disponible para: ${pdf.filename} (ID: ${pdf._id})`);
-					}
-
-					// 4. Si aún no hay coincidencia, usar lógica de fallback
-					if (!matchingFile) {
-						console.log(
-							`⚠️ [PDF BASE64] Sin mapeo específico, usando lógica de fallback`
-						);
-						
-						// Mapeo por patrón de nombre como última opción
-						const targetName = pdf.filename
-							.toLowerCase()
-							.replace(/\s+/g, "")
-							.replace(/\.pdf$/, "");
-
-						for (const file of availableFiles) {
-							const cleanFileName = file
-								.toLowerCase()
-								.replace(/pdf-\d+-\d+\.pdf$/, "")
-								.replace(/\s+/g, "");
-
-							// Verificar criterios de coincidencia más estrictos
-							const nameMatch = cleanFileName.includes(targetName) && targetName.length > 8;
-							
-							if (nameMatch) {
-								matchingFile = file;
-								console.log(
-									`🔀 [PDF BASE64] Fallback - coincidencia encontrada: "${file}" matches "${pdf.filename}"`
-								);
-								break;
-							}
-						}
-						
-						if (!matchingFile) {
-							// Si no hay mapeo específico, usar lógica de patrones
-							if (pdf.filename.toLowerCase().includes("apertura")) {
-								matchingFile = availableFiles.find((f) => f.includes("1762839910147")) || availableFiles[3] || availableFiles[0];
-							} else if (pdf.filename.toLowerCase().includes("prestamo") || pdf.filename.toLowerCase().includes("seguimiento")) {
-								matchingFile = availableFiles.find((f) => f.includes("1762839890353")) || availableFiles[1] || availableFiles[0];
-							} else if (pdf.filename.toLowerCase().includes("pago") || pdf.filename.toLowerCase().includes("servicio")) {
-								matchingFile = availableFiles.find((f) => f.includes("1762839898137")) || availableFiles[2] || availableFiles[0];
-							} else if (pdf.filename.toLowerCase().includes("chequera") || pdf.filename.toLowerCase().includes("gestion")) {
-								matchingFile = availableFiles.find((f) => f.includes("1762839882812")) || availableFiles[0];
-							} else {
-								// Para otros casos, usar distribución hash más estable
-								const hash = pdf._id.toString().split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-								const index = hash % availableFiles.length;
-								matchingFile = availableFiles[index];
-							}
-							
-							console.log(
-								`🔀 [PDF BASE64] Usando mapeo por patrón mejorado: ${matchingFile}`
-							);
-						}
-					}
-
-					if (matchingFile) {
-						targetFilePath = path.join(uploadsDir, matchingFile);
-						console.log(`✅ [PDF BASE64] Archivo mapeado: ${matchingFile}`);
 					} else {
-						// Último recurso: usar el primer archivo
-						targetFilePath = path.join(uploadsDir, availableFiles[0]);
 						console.log(
-							`🚨 [PDF BASE64] Último recurso - usando: ${availableFiles[0]}`
+							`❌ [PDF BASE64] ID no encontrado en mapeo directo: ${currentId} (${pdf.filename})`
+						);
+						console.log(`📋 [PDF BASE64] IDs disponibles en mapeo:`, Object.keys(directMapping));
+						
+						// Fallback simple: usar primer archivo
+						matchingFile = availableFiles[0];
+						console.log(
+							`� [PDF BASE64] FALLBACK - usando primer archivo: ${matchingFile}`
+						);
+						console.log(
+							`⚠️ [PDF BASE64] AGREGAR AL MAPEO: "${currentId}": "archivo-correcto.pdf", // ${pdf.filename}`
 						);
 					}
+
+					// Asignar el archivo mapeado
+					targetFilePath = path.join(uploadsDir, matchingFile);
+					console.log(`✅ [PDF BASE64] Archivo final asignado: ${matchingFile}`);
 				} else {
 					return res.status(404).json({
 						error: "No hay archivos PDF disponibles en el sistema",
