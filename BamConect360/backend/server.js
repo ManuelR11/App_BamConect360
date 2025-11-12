@@ -544,13 +544,13 @@ const servePdfAsBase64 = async (req, res) => {
 						`🔍 [PDF BASE64] Mapeo DIRECTO para: "${pdf.filename}" (ID: ${pdf._id})`
 					);
 
-					// MAPEO DIRECTO CON IDs NUEVOS (PDFs recién subidos)
+					// MAPEO DIRECTO CON IDs CORREGIDOS (PDFs recién subidos)
 					const directMapping = {
 						// IDs exactos de la base de datos -> archivos físicos
 						"6913edf86a34e53a641e800d": "pdf-1762839882812-24906428.pdf", // Gestion de Chequeras.pdf
 						"6913ee376a34e53a641e8011": "pdf-1762839955729-521323488.pdf", // Consulta de Saldos y Movimientos.pdf
 						"6913ee656a34e53a641e8015": "pdf-1762839898137-325926996.pdf", // Manual de apertura de cuenta ejemplo.pdf
-						"6913ee896a34e53a641e8019": "pdf-1762839922766-525834752.pdf", // Manual de inversion a plazo fijo.pdf
+						"6913ee896a34e53a641e8019": "pdf-1762839922766-525834752.pdf", // Manual de inversion a plazo fijo.pdf (ID CORREGIDO)
 						"6913eeef6a34e53a641e801d": "pdf-1762839910147-424431997.pdf", // Pago de Servicios.pdf
 						"6913ef9a6a34e53a641e8021": "pdf-1762839927397-384975741.pdf", // Seguimiento de Prestamos.pdf
 						"6913efda6a34e53a641e8025": "pdf-1762839917088-443931258.pdf", // Solicitud de Prestamos.pdf
