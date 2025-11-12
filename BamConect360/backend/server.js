@@ -1118,8 +1118,29 @@ console.log(
 
 mongoose
 	.connect(mongoUri)
-	.then(() => {
+	.then(async () => {
 		console.log("✅ Conectado a MongoDB exitosamente");
+		
+		// EJECUTAR MIGRACIÓN AUTOMÁTICAMENTE AL INICIO
+		try {
+			console.log('🔄 [AUTO-MIGRATION] Verificando PDFs sin binario...');
+			const pdfsWithoutBinary = await PDFContent.countDocuments({ 
+				$or: [
+					{ pdfBinary: { $exists: false } },
+					{ pdfBinary: null }
+				]
+			});
+			
+			if (pdfsWithoutBinary > 0) {
+				console.log(`📋 [AUTO-MIGRATION] Encontrados ${pdfsWithoutBinary} PDFs sin binario, ejecutando migración...`);
+				await migratePdfsToMongoDB();
+			} else {
+				console.log('✅ [AUTO-MIGRATION] Todos los PDFs ya tienen binario guardado');
+			}
+		} catch (error) {
+			console.log(`⚠️ [AUTO-MIGRATION] Error en migración automática: ${error.message}`);
+		}
+		
 		loadTrainingContent();
 	})
 	.catch((err) => {
