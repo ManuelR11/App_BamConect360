@@ -517,18 +517,9 @@ const servePdfAsBase64 = async (req, res) => {
 			filename: pdf.filename,
 			base64: base64Data,
 			contentType: "application/pdf",
-			// Agregar metadata para identificación y debug
-			originalTitle: pdf.filename,
-			mappedFile: path.basename(targetFilePath),
-			contentMatches: contentMatches,
-			fileSize: fileSize,
 			pdfId: pdf._id,
-			debug: {
-				originalPath: pdf.filePath,
-				finalPath: targetFilePath,
-				hasContent: pdfText.length > 0,
-				contentPreview: pdfText.substring(0, 50)
-			}
+			generatedFromDB: true,
+			contentLength: pdf.content ? pdf.content.length : 0
 		});
 	} catch (error) {
 		console.error("❌ [PDF BASE64] Error:", error);
