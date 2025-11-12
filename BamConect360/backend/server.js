@@ -416,6 +416,9 @@ const servePdfAsBase64 = async (req, res) => {
 						[generateDescriptiveId("Manual de apertura de cuenta ejemplo.pdf")]: "pdf-1762839898137-325926996.pdf", // manual-de-apertura-de-cuenta-ej
 						[generateDescriptiveId("Gestión de Chequeras.pdf")]: "pdf-1762839882812-24906428.pdf", // gestion-de-chequeras
 						[generateDescriptiveId("Solicitud de Prestamos.pdf")]: "pdf-1762839917088-443931258.pdf", // solicitud-de-prestamos
+						[generateDescriptiveId("Manual de inversion a plazo fijo.pdf")]: "pdf-1762839922766-525834752.pdf", // manual-de-inversion-a-plazo-fijo
+						[generateDescriptiveId("Seguimiento de Prestamos.pdf")]: "pdf-1762839927397-384975741.pdf", // seguimiento-de-prestamos
+						[generateDescriptiveId("Consulta de Saldos y Movimientos.pdf")]: "pdf-1762839955729-521323488.pdf", // consulta-de-saldos-y-movimiento
 					};
 
 					// También mantener mapeo por IDs originales para compatibilidad
@@ -423,18 +426,23 @@ const servePdfAsBase64 = async (req, res) => {
 						"6913814a8717b6e77a788616": "pdf-1762839910147-424431997.pdf", // Pago de Servicios
 						"6913815c8717b6e77a788622": "pdf-1762839890353-607425718.pdf", // Solicitud de Tarjeta 
 						"6913813b8717b6e77a78860e": "pdf-1762839898137-325926996.pdf", // Manual de apertura
+						"6913d6cf7a96980957a281a": "pdf-1762839922766-525834752.pdf", // Manual de inversion a plazo fijo
+						// Agregar más IDs según sean necesarios
 					};
 
 					// Combinar ambos mapeos
 					const idMapping = { ...originalIdMapping, ...descriptiveIdMapping };
 
-					// PRIORIDAD 2: Mapeo específico por nombre (CORREGIDO - intercambiar archivos)
+					// PRIORIDAD 2: Mapeo específico por nombre (ACTUALIZADO con todos los PDFs)
 					const specificMapping = {
 						"Solicitud de Tarjeta.pdf": "pdf-1762839890353-607425718.pdf", // Tarjetas
-						"Solicitud de Prestamos.pdf": "pdf-1762839917088-443931258.pdf", // Préstamos -> el que mostraba seguimiento
+						"Solicitud de Prestamos.pdf": "pdf-1762839917088-443931258.pdf", // Préstamos
 						"Pago de Servicios.pdf": "pdf-1762839910147-424431997.pdf", // Servicios
 						"Gestión de Chequeras.pdf": "pdf-1762839882812-24906428.pdf", // Chequeras (original)
-						"Manual de apertura de cuenta ejemplo.pdf": "pdf-1762839898137-325926996.pdf", // Apertura -> cambiar archivo
+						"Manual de apertura de cuenta ejemplo.pdf": "pdf-1762839898137-325926996.pdf", // Apertura
+						"Manual de inversion a plazo fijo.pdf": "pdf-1762839922766-525834752.pdf", // Inversión a plazo fijo
+						"Seguimiento de Prestamos.pdf": "pdf-1762839927397-384975741.pdf", // Seguimiento
+						"Consulta de Saldos y Movimientos.pdf": "pdf-1762839955729-521323488.pdf", // Consulta saldos
 					};
 
 					let matchingFile = null;
