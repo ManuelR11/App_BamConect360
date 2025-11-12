@@ -280,6 +280,45 @@ const servePdfDocument = async (req, res) => {
 	}
 };
 
+// Función para crear PDF simple desde contenido de BD
+const createSimplePDFBase64 = async (filename, content) => {
+	try {
+		// Crear un PDF simple usando una librería básica
+		const PDFDocument = await import('pdfkit').then(m => m.default);
+		
+		return new Promise((resolve, reject) => {
+			const doc = new PDFDocument({ margin: 50 });
+			const chunks = [];
+
+			doc.on('data', chunk => chunks.push(chunk));
+			doc.on('end', () => {
+				const pdfBuffer = Buffer.concat(chunks);
+				const base64 = pdfBuffer.toString('base64');
+				resolve(base64);
+			});
+			doc.on('error', reject);
+
+			// Agregar título
+			doc.fontSize(20).font('Helvetica-Bold').text(filename.replace('.pdf', ''), 50, 50);
+			doc.moveDown(2);
+
+			// Agregar contenido
+			doc.fontSize(12).font('Helvetica').text(content || 'Contenido no disponible', 50, doc.y, {
+				width: 500,
+				align: 'justify'
+			});
+
+			doc.end();
+		});
+	} catch (error) {
+		console.log(`⚠️ [PDF Generator] Error generando PDF: ${error.message}`);
+		
+		// Fallback: crear un base64 básico con información mínima
+		const basicContent = `data:application/pdf;base64,${Buffer.from(`PDF: ${filename}\n\n${content || 'Sin contenido'}`).toString('base64')}`;
+		return basicContent.split(',')[1];
+	}
+};
+
 // Función auxiliar para generar contenido personalizado
 const generateCustomPDFContent = (filename, content) => {
 	// Extraer información del filename para personalizar
@@ -451,44 +490,13 @@ const servePdfAsBase64 = async (req, res) => {
 			}
 		}
 
-		console.log(`✅ [PDF BASE64] Archivo confirmado: ${targetFilePath}`);
+		console.log(`🎯 [PDF BASE64] GENERANDO PDF DINÁMICO desde BD para: ${pdf.filename} (ID: ${pdf._id})`);
 
-		// Leer el archivo y convertirlo a Base64
-		const pdfBuffer = fs.readFileSync(targetFilePath);
-
-		// Leer el contenido del archivo físico para verificar correspondencia
-		let pdfText = "";
-		try {
-			const parsedPdf = await pdfParse(pdfBuffer);
-			pdfText = parsedPdf.text.toLowerCase();
-		} catch (parseError) {
-			console.log(`⚠️ [PDF BASE64] No se pudo parsear el PDF para verificación: ${parseError.message}`);
-		}
-
-		// Verificar si el contenido del archivo físico corresponde al título esperado
-		const expectedKeywords = {
-			"Solicitud de Tarjeta.pdf": ["tarjeta", "credito", "debito", "solicitud"],
-			"Solicitud de Prestamos.pdf": ["prestamo", "credito", "financiamiento", "solicitud"],
-			"Pago de Servicios.pdf": ["pago", "servicio", "factura", "recibo"],
-			"Gestión de Chequeras.pdf": ["chequera", "cheque", "talonario", "gestion"],
-			"Manual de apertura de cuenta ejemplo.pdf": ["apertura", "cuenta", "deposito", "cliente"]
-		};
-
-		const keywords = expectedKeywords[pdf.filename] || [];
-		let contentMatches = keywords.some(keyword => pdfText.includes(keyword)) || pdfText.length === 0;
+		// GENERAR PDF DINÁMICAMENTE usando SOLO el contenido de la base de datos
+		const base64Data = await createSimplePDFBase64(pdf.filename, pdf.content);
+		const fileSize = Buffer.from(base64Data, 'base64').length;
 		
-		console.log(`🔍 [PDF BASE64] Verificación de contenido: ${pdf.filename}`);
-		console.log(`📝 [PDF BASE64] Palabras clave esperadas: ${keywords.join(', ')}`);
-		console.log(`✅ [PDF BASE64] Contenido coincide: ${contentMatches}`);
-
-		// Convertir el archivo a Base64
-		const base64Data = pdfBuffer.toString("base64");
-		const fileSize = pdfBuffer.length;
-
-		if (!contentMatches && pdfText.length > 0) {
-			console.log(`⚠️ [PDF BASE64] ADVERTENCIA: El contenido del archivo físico podría no corresponder al título esperado`);
-			console.log(`📄 [PDF BASE64] Primeras palabras del archivo: ${pdfText.substring(0, 100)}`);
-		}
+		console.log(`✅ [PDF BASE64] PDF generado dinámicamente desde BD: ${fileSize} bytes`);
 
 		console.log(
 			`📄 [PDF BASE64] PDF convertido a Base64: ${pdf.filename} (${fileSize} bytes)`
