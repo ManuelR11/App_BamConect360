@@ -159,15 +159,6 @@ export default function GuiasProcedimientos() {
 	const services = [
 		{
 			id: 1,
-			icon: PiggyBankIcon,
-			title: "Manual de apertura de cuenta ejemplo",
-			description: "Guia completa para abrir nuevas cuentas bancarias",
-			gradient: "linear-gradient(135deg, #f59e0b, #d97706)",
-			category: "Cuentas",
-			pdfName: "Manual de apertura de cuenta ejemplo.pdf",
-		},
-		{
-			id: 2,
 			icon: CreditCardIcon,
 			title: "Solicitud de Tarjeta",
 			description: "Proceso para solicitar tarjetas de credito y debito",
@@ -176,7 +167,7 @@ export default function GuiasProcedimientos() {
 			pdfName: "Solicitud de Tarjeta.pdf",
 		},
 		{
-			id: 3,
+			id: 2,
 			icon: DocumentIcon,
 			title: "Pago de Servicios",
 			description: "Instrucciones para pagos de servicios publicos",
@@ -185,7 +176,7 @@ export default function GuiasProcedimientos() {
 			pdfName: "Pago de Servicios.pdf",
 		},
 		{
-			id: 4,
+			id: 3,
 			icon: SearchIcon,
 			title: "Consulta de Saldos y Movimientos",
 			description: "Como consultar balances y transacciones",
@@ -194,7 +185,7 @@ export default function GuiasProcedimientos() {
 			pdfName: "Consulta de Saldos y Movimientos.pdf",
 		},
 		{
-			id: 5,
+			id: 4,
 			icon: EditIcon,
 			title: "Gestion de Chequeras",
 			description: "Solicitud y manejo de talonarios de cheques",
@@ -203,7 +194,7 @@ export default function GuiasProcedimientos() {
 			pdfName: "Gestion de Chequeras.pdf",
 		},
 		{
-			id: 6,
+			id: 5,
 			icon: MoneyBagIcon,
 			title: "Solicitud de Prestamos",
 			description: "Procedimiento para solicitar creditos",
@@ -212,13 +203,22 @@ export default function GuiasProcedimientos() {
 			pdfName: "Solicitud de Prestamos.pdf",
 		},
 		{
-			id: 7,
+			id: 6,
 			icon: MagnifyingGlassIcon,
 			title: "Seguimiento de Prestamos",
 			description: "Monitoreo del estado de solicitudes de credito",
 			gradient: "linear-gradient(135deg, #84cc16, #65a30d)",
 			category: "Seguimiento",
 			pdfName: "Seguimiento de Prestamos.pdf",
+		},
+		{
+			id: 7,
+			icon: PiggyBankIcon,
+			title: "Manual de apertura de cuenta",
+			description: "Guia completa para abrir nuevas cuentas bancarias",
+			gradient: "linear-gradient(135deg, #f59e0b, #d97706)",
+			category: "Cuentas",
+			pdfName: "Manual de apertura de cuenta ejemplo.pdf",
 		},
 		{
 			id: 8,

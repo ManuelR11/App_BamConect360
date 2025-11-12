@@ -291,10 +291,10 @@ const createSimplePDFBase64 = async (filename, content) => {
 		const PDFDocument = await import("pdfkit").then((m) => m.default);
 
 		return new Promise((resolve, reject) => {
-			const doc = new PDFDocument({ 
+			const doc = new PDFDocument({
 				margin: 60,
-				size: 'A4',
-				bufferPages: true 
+				size: "A4",
+				bufferPages: true,
 			});
 			const chunks = [];
 
@@ -307,46 +307,48 @@ const createSimplePDFBase64 = async (filename, content) => {
 			doc.on("error", reject);
 
 			// Colores corporativos
-			const primaryColor = '#1e3a8a'; // Azul corporativo
-			const secondaryColor = '#3b82f6'; // Azul claro
-			const textColor = '#374151'; // Gris oscuro
-			const accentColor = '#f59e0b'; // Amarillo/dorado
+			const primaryColor = "#1e3a8a"; // Azul corporativo
+			const secondaryColor = "#3b82f6"; // Azul claro
+			const textColor = "#374151"; // Gris oscuro
+			const accentColor = "#f59e0b"; // Amarillo/dorado
 
 			// Header con logo BAM (simulado)
 			doc.rect(0, 0, doc.page.width, 80).fill(primaryColor);
-			
+
 			// Logo y título del header
-			doc.fontSize(24)
-			   .fillColor('white')
-			   .text('BAM', 60, 25, { width: 100 });
-			
-			doc.fontSize(14)
-			   .fillColor('white')
-			   .text('Banco de América Móvil', 150, 35);
+			doc.fontSize(24).fillColor("white").text("BAM", 60, 25, { width: 100 });
+
+			doc
+				.fontSize(14)
+				.fillColor("white")
+				.text("Banco de América Móvil", 150, 35);
 
 			// Título principal del documento
-			doc.fontSize(22)
-			   .fillColor(primaryColor)
-			   .font('Helvetica-Bold')
-			   .text(filename.replace('.pdf', ''), 60, 120, {
-				   width: doc.page.width - 120,
-				   align: 'center'
-			   });
+			doc
+				.fontSize(22)
+				.fillColor(primaryColor)
+				.font("Helvetica-Bold")
+				.text(filename.replace(".pdf", ""), 60, 120, {
+					width: doc.page.width - 120,
+					align: "center",
+				});
 
 			// Línea decorativa
 			doc.rect(60, 160, doc.page.width - 120, 3).fill(secondaryColor);
 
 			// Preparar contenido
 			const cleanContent = content || "Contenido no disponible";
-			const paragraphs = cleanContent.split('\n\n').filter(p => p.trim().length > 0);
-			
+			const paragraphs = cleanContent
+				.split("\n\n")
+				.filter((p) => p.trim().length > 0);
+
 			let currentY = 200;
 			const pageHeight = doc.page.height - 120; // Espacio para footer
 			const lineHeight = 18;
 
 			paragraphs.forEach((paragraph, index) => {
 				const trimmedParagraph = paragraph.trim();
-				
+
 				// Verificar si necesitamos nueva página
 				if (currentY > pageHeight) {
 					doc.addPage();
@@ -354,35 +356,38 @@ const createSimplePDFBase64 = async (filename, content) => {
 				}
 
 				// Detectar títulos/subtítulos (líneas cortas o que empiecen con números/letras)
-				const isTitle = trimmedParagraph.length < 80 && 
-					(trimmedParagraph.match(/^[0-9]+\./) || 
-					 trimmedParagraph.match(/^[A-Z][A-Z\s]+:/) ||
-					 trimmedParagraph.split(' ').length <= 8);
+				const isTitle =
+					trimmedParagraph.length < 80 &&
+					(trimmedParagraph.match(/^[0-9]+\./) ||
+						trimmedParagraph.match(/^[A-Z][A-Z\s]+:/) ||
+						trimmedParagraph.split(" ").length <= 8);
 
 				if (isTitle) {
 					// Estilo para títulos
-					doc.fontSize(16)
-					   .fillColor(primaryColor)
-					   .font('Helvetica-Bold')
-					   .text(trimmedParagraph, 60, currentY, {
-						   width: doc.page.width - 120,
-						   align: 'left'
-					   });
+					doc
+						.fontSize(16)
+						.fillColor(primaryColor)
+						.font("Helvetica-Bold")
+						.text(trimmedParagraph, 60, currentY, {
+							width: doc.page.width - 120,
+							align: "left",
+						});
 					currentY += 25;
 				} else {
 					// Estilo for párrafos normales
-					doc.fontSize(11)
-					   .fillColor(textColor)
-					   .font('Helvetica')
-					   .text(trimmedParagraph, 60, currentY, {
-						   width: doc.page.width - 120,
-						   align: 'justify',
-						   lineGap: 3
-					   });
-					
+					doc
+						.fontSize(11)
+						.fillColor(textColor)
+						.font("Helvetica")
+						.text(trimmedParagraph, 60, currentY, {
+							width: doc.page.width - 120,
+							align: "justify",
+							lineGap: 3,
+						});
+
 					// Calcular altura del texto
 					const textHeight = doc.heightOfString(trimmedParagraph, {
-						width: doc.page.width - 120
+						width: doc.page.width - 120,
 					});
 					currentY += textHeight + 15;
 				}
@@ -391,25 +396,33 @@ const createSimplePDFBase64 = async (filename, content) => {
 			// Footer en todas las páginas
 			const addFooter = (pageNum, totalPages) => {
 				const footerY = doc.page.height - 50;
-				
+
 				// Línea footer
-				doc.rect(60, footerY - 10, doc.page.width - 120, 1).fill(secondaryColor);
-				
+				doc
+					.rect(60, footerY - 10, doc.page.width - 120, 1)
+					.fill(secondaryColor);
+
 				// Texto footer
-				doc.fontSize(9)
-				   .fillColor('#6b7280')
-				   .font('Helvetica')
-				   .text('BAM - Banco de América Móvil', 60, footerY, { align: 'left' })
-				   .text(`Página ${pageNum} de ${totalPages}`, 0, footerY, { 
-					   width: doc.page.width - 60, 
-					   align: 'right' 
-				   });
-				   
+				doc
+					.fontSize(9)
+					.fillColor("#6b7280")
+					.font("Helvetica")
+					.text("BAM - Banco de América Móvil", 60, footerY, { align: "left" })
+					.text(`Página ${pageNum} de ${totalPages}`, 0, footerY, {
+						width: doc.page.width - 60,
+						align: "right",
+					});
+
 				// Fecha de generación
-				doc.text(`Generado: ${new Date().toLocaleDateString('es-ES')}`, 60, footerY + 12, { 
-					align: 'left',
-					fontSize: 8 
-				});
+				doc.text(
+					`Generado: ${new Date().toLocaleDateString("es-ES")}`,
+					60,
+					footerY + 12,
+					{
+						align: "left",
+						fontSize: 8,
+					}
+				);
 			};
 
 			// Agregar footers a todas las páginas
@@ -617,19 +630,27 @@ const servePdfAsBase64 = async (req, res) => {
 
 		// PRIORIDAD 1: Usar PDF binario original si está disponible (mantiene formato completo)
 		if (pdf.pdfBinary && pdf.pdfBinary.length > 0) {
-			console.log(`🎯 [PDF BASE64] USANDO PDF BINARIO ORIGINAL con formato completo: ${pdf.filename}`);
-			base64Data = pdf.pdfBinary.toString('base64');
+			console.log(
+				`🎯 [PDF BASE64] USANDO PDF BINARIO ORIGINAL con formato completo: ${pdf.filename}`
+			);
+			base64Data = pdf.pdfBinary.toString("base64");
 			fileSize = pdf.pdfBinary.length;
-			sourceType = 'PDF_BINARIO_ORIGINAL';
-			console.log(`✅ [PDF BASE64] PDF binario original usado: ${fileSize} bytes`);
-		} 
+			sourceType = "PDF_BINARIO_ORIGINAL";
+			console.log(
+				`✅ [PDF BASE64] PDF binario original usado: ${fileSize} bytes`
+			);
+		}
 		// PRIORIDAD 2: Generar desde texto si no hay PDF binario
 		else {
-			console.log(`🎯 [PDF BASE64] PDF binario no disponible, generando desde texto: ${pdf.filename}`);
+			console.log(
+				`🎯 [PDF BASE64] PDF binario no disponible, generando desde texto: ${pdf.filename}`
+			);
 			base64Data = await createSimplePDFBase64(pdf.filename, pdf.content);
-			fileSize = Buffer.from(base64Data, 'base64').length;
-			sourceType = 'GENERADO_DESDE_TEXTO';
-			console.log(`✅ [PDF BASE64] PDF generado desde texto: ${fileSize} bytes`);
+			fileSize = Buffer.from(base64Data, "base64").length;
+			sourceType = "GENERADO_DESDE_TEXTO";
+			console.log(
+				`✅ [PDF BASE64] PDF generado desde texto: ${fileSize} bytes`
+			);
 		}
 
 		console.log(
@@ -655,15 +676,13 @@ const servePdfAsBase64 = async (req, res) => {
 			sourceType: sourceType,
 			hasPdfBinary: !!(pdf.pdfBinary && pdf.pdfBinary.length > 0),
 			contentLength: pdf.content ? pdf.content.length : 0,
-			fileSize: fileSize
+			fileSize: fileSize,
 		});
 	} catch (error) {
 		console.error("❌ [PDF BASE64] Error:", error);
 		res.status(500).json({ error: "Error obteniendo el PDF" });
 	}
 };
-
-
 
 // ⚠️ RUTAS CRÍTICAS DE PDF - DEBEN ESTAR ANTES DE LOS ARCHIVOS ESTÁTICOS
 app.get("/documents/test", (req, res) => {
