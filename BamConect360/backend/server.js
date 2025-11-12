@@ -280,42 +280,150 @@ const servePdfDocument = async (req, res) => {
 	}
 };
 
-// Función para crear PDF simple desde contenido de BD
+// Función para crear PDF profesional desde contenido de BD
 const createSimplePDFBase64 = async (filename, content) => {
 	try {
-		// Crear un PDF simple usando una librería básica
-		const PDFDocument = await import('pdfkit').then(m => m.default);
-		
+		const PDFDocument = await import("pdfkit").then((m) => m.default);
+
 		return new Promise((resolve, reject) => {
-			const doc = new PDFDocument({ margin: 50 });
+			const doc = new PDFDocument({ 
+				margin: 60,
+				size: 'A4',
+				bufferPages: true 
+			});
 			const chunks = [];
 
-			doc.on('data', chunk => chunks.push(chunk));
-			doc.on('end', () => {
+			doc.on("data", (chunk) => chunks.push(chunk));
+			doc.on("end", () => {
 				const pdfBuffer = Buffer.concat(chunks);
-				const base64 = pdfBuffer.toString('base64');
+				const base64 = pdfBuffer.toString("base64");
 				resolve(base64);
 			});
-			doc.on('error', reject);
+			doc.on("error", reject);
 
-			// Agregar título
-			doc.fontSize(20).font('Helvetica-Bold').text(filename.replace('.pdf', ''), 50, 50);
-			doc.moveDown(2);
+			// Colores corporativos
+			const primaryColor = '#1e3a8a'; // Azul corporativo
+			const secondaryColor = '#3b82f6'; // Azul claro
+			const textColor = '#374151'; // Gris oscuro
+			const accentColor = '#f59e0b'; // Amarillo/dorado
 
-			// Agregar contenido
-			doc.fontSize(12).font('Helvetica').text(content || 'Contenido no disponible', 50, doc.y, {
-				width: 500,
-				align: 'justify'
+			// Header con logo BAM (simulado)
+			doc.rect(0, 0, doc.page.width, 80).fill(primaryColor);
+			
+			// Logo y título del header
+			doc.fontSize(24)
+			   .fillColor('white')
+			   .text('BAM', 60, 25, { width: 100 });
+			
+			doc.fontSize(14)
+			   .fillColor('white')
+			   .text('Banco de América Móvil', 150, 35);
+
+			// Título principal del documento
+			doc.fontSize(22)
+			   .fillColor(primaryColor)
+			   .font('Helvetica-Bold')
+			   .text(filename.replace('.pdf', ''), 60, 120, {
+				   width: doc.page.width - 120,
+				   align: 'center'
+			   });
+
+			// Línea decorativa
+			doc.rect(60, 160, doc.page.width - 120, 3).fill(secondaryColor);
+
+			// Preparar contenido
+			const cleanContent = content || "Contenido no disponible";
+			const paragraphs = cleanContent.split('\n\n').filter(p => p.trim().length > 0);
+			
+			let currentY = 200;
+			const pageHeight = doc.page.height - 120; // Espacio para footer
+			const lineHeight = 18;
+
+			paragraphs.forEach((paragraph, index) => {
+				const trimmedParagraph = paragraph.trim();
+				
+				// Verificar si necesitamos nueva página
+				if (currentY > pageHeight) {
+					doc.addPage();
+					currentY = 60;
+				}
+
+				// Detectar títulos/subtítulos (líneas cortas o que empiecen con números/letras)
+				const isTitle = trimmedParagraph.length < 80 && 
+					(trimmedParagraph.match(/^[0-9]+\./) || 
+					 trimmedParagraph.match(/^[A-Z][A-Z\s]+:/) ||
+					 trimmedParagraph.split(' ').length <= 8);
+
+				if (isTitle) {
+					// Estilo para títulos
+					doc.fontSize(16)
+					   .fillColor(primaryColor)
+					   .font('Helvetica-Bold')
+					   .text(trimmedParagraph, 60, currentY, {
+						   width: doc.page.width - 120,
+						   align: 'left'
+					   });
+					currentY += 25;
+				} else {
+					// Estilo for párrafos normales
+					doc.fontSize(11)
+					   .fillColor(textColor)
+					   .font('Helvetica')
+					   .text(trimmedParagraph, 60, currentY, {
+						   width: doc.page.width - 120,
+						   align: 'justify',
+						   lineGap: 3
+					   });
+					
+					// Calcular altura del texto
+					const textHeight = doc.heightOfString(trimmedParagraph, {
+						width: doc.page.width - 120
+					});
+					currentY += textHeight + 15;
+				}
 			});
+
+			// Footer en todas las páginas
+			const addFooter = (pageNum, totalPages) => {
+				const footerY = doc.page.height - 50;
+				
+				// Línea footer
+				doc.rect(60, footerY - 10, doc.page.width - 120, 1).fill(secondaryColor);
+				
+				// Texto footer
+				doc.fontSize(9)
+				   .fillColor('#6b7280')
+				   .font('Helvetica')
+				   .text('BAM - Banco de América Móvil', 60, footerY, { align: 'left' })
+				   .text(`Página ${pageNum} de ${totalPages}`, 0, footerY, { 
+					   width: doc.page.width - 60, 
+					   align: 'right' 
+				   });
+				   
+				// Fecha de generación
+				doc.text(`Generado: ${new Date().toLocaleDateString('es-ES')}`, 60, footerY + 12, { 
+					align: 'left',
+					fontSize: 8 
+				});
+			};
+
+			// Agregar footers a todas las páginas
+			const totalPages = doc.bufferedPageRange().count;
+			for (let i = 0; i < totalPages; i++) {
+				doc.switchToPage(i);
+				addFooter(i + 1, totalPages);
+			}
 
 			doc.end();
 		});
 	} catch (error) {
 		console.log(`⚠️ [PDF Generator] Error generando PDF: ${error.message}`);
-		
+
 		// Fallback: crear un base64 básico con información mínima
-		const basicContent = `data:application/pdf;base64,${Buffer.from(`PDF: ${filename}\n\n${content || 'Sin contenido'}`).toString('base64')}`;
-		return basicContent.split(',')[1];
+		const basicContent = `data:application/pdf;base64,${Buffer.from(
+			`PDF: ${filename}\n\n${content || "Sin contenido"}`
+		).toString("base64")}`;
+		return basicContent.split(",")[1];
 	}
 };
 
@@ -448,7 +556,10 @@ const servePdfAsBase64 = async (req, res) => {
 					const currentId = pdf._id.toString();
 
 					// BUSCAR DIRECTAMENTE POR ID
-					if (directMapping[currentId] && availableFiles.includes(directMapping[currentId])) {
+					if (
+						directMapping[currentId] &&
+						availableFiles.includes(directMapping[currentId])
+					) {
 						matchingFile = directMapping[currentId];
 						console.log(
 							`🎯 [PDF BASE64] Mapeo DIRECTO encontrado: ${currentId} (${pdf.filename}) -> ${matchingFile}`
@@ -457,8 +568,11 @@ const servePdfAsBase64 = async (req, res) => {
 						console.log(
 							`❌ [PDF BASE64] ID no encontrado en mapeo directo: ${currentId} (${pdf.filename})`
 						);
-						console.log(`📋 [PDF BASE64] IDs disponibles en mapeo:`, Object.keys(directMapping));
-						
+						console.log(
+							`📋 [PDF BASE64] IDs disponibles en mapeo:`,
+							Object.keys(directMapping)
+						);
+
 						// Fallback simple: usar primer archivo
 						matchingFile = availableFiles[0];
 						console.log(
@@ -471,7 +585,9 @@ const servePdfAsBase64 = async (req, res) => {
 
 					// Asignar el archivo mapeado
 					targetFilePath = path.join(uploadsDir, matchingFile);
-					console.log(`✅ [PDF BASE64] Archivo final asignado: ${matchingFile}`);
+					console.log(
+						`✅ [PDF BASE64] Archivo final asignado: ${matchingFile}`
+					);
 				} else {
 					return res.status(404).json({
 						error: "No hay archivos PDF disponibles en el sistema",
@@ -490,13 +606,18 @@ const servePdfAsBase64 = async (req, res) => {
 			}
 		}
 
-		console.log(`🎯 [PDF BASE64] GENERANDO PDF DINÁMICO desde BD para: ${pdf.filename} (ID: ${pdf._id})`);
+		console.log(
+			`🎯 [PDF BASE64] USANDO PDF ORIGINAL con formato completo: ${targetFilePath}`
+		);
 
-		// GENERAR PDF DINÁMICAMENTE usando SOLO el contenido de la base de datos
-		const base64Data = await createSimplePDFBase64(pdf.filename, pdf.content);
-		const fileSize = Buffer.from(base64Data, 'base64').length;
-		
-		console.log(`✅ [PDF BASE64] PDF generado dinámicamente desde BD: ${fileSize} bytes`);
+		// LEER EL PDF ORIGINAL del disco (mantiene formato, colores, estilos, etc.)
+		const pdfBuffer = fs.readFileSync(targetFilePath);
+		const base64Data = pdfBuffer.toString('base64');
+		const fileSize = pdfBuffer.length;
+
+		console.log(
+			`✅ [PDF BASE64] PDF original leído desde disco: ${fileSize} bytes`
+		);
 
 		console.log(
 			`📄 [PDF BASE64] PDF convertido a Base64: ${pdf.filename} (${fileSize} bytes)`
@@ -519,7 +640,7 @@ const servePdfAsBase64 = async (req, res) => {
 			contentType: "application/pdf",
 			pdfId: pdf._id,
 			generatedFromDB: true,
-			contentLength: pdf.content ? pdf.content.length : 0
+			contentLength: pdf.content ? pdf.content.length : 0,
 		});
 	} catch (error) {
 		console.error("❌ [PDF BASE64] Error:", error);
@@ -577,39 +698,50 @@ app.get("/api/debug/pdf-content", async (req, res) => {
 				const pdfBuffer = fs.readFileSync(filePath);
 				const parsedPdf = await pdfParse(pdfBuffer);
 				const content = parsedPdf.text;
-				
+
 				// Extraer las primeras líneas para identificar el contenido
-				const lines = content.split('\n').filter(line => line.trim()).slice(0, 10);
-				const title = lines.find(line => 
-					line.includes('APERTURA') || 
-					line.includes('TARJETA') || 
-					line.includes('PRESTAMO') || 
-					line.includes('SERVICIO') || 
-					line.includes('CHEQUERA') ||
-					line.includes('SEGUIMIENTO') ||
-					line.includes('PAGO')
-				) || lines[0] || '';
+				const lines = content
+					.split("\n")
+					.filter((line) => line.trim())
+					.slice(0, 10);
+				const title =
+					lines.find(
+						(line) =>
+							line.includes("APERTURA") ||
+							line.includes("TARJETA") ||
+							line.includes("PRESTAMO") ||
+							line.includes("SERVICIO") ||
+							line.includes("CHEQUERA") ||
+							line.includes("SEGUIMIENTO") ||
+							line.includes("PAGO")
+					) ||
+					lines[0] ||
+					"";
 
 				fileAnalysis.push({
 					filename: file,
 					detectedTitle: title.trim(),
-					contentPreview: lines.slice(0, 5).join(' | '),
+					contentPreview: lines.slice(0, 5).join(" | "),
 					size: pdfBuffer.length,
-					probableType: 
-						title.includes('APERTURA') ? 'Apertura de cuenta' :
-						title.includes('TARJETA') ? 'Solicitud de tarjeta' :
-						title.includes('PRESTAMO') || title.includes('SEGUIMIENTO') ? 'Préstamos/Seguimiento' :
-						title.includes('SERVICIO') || title.includes('PAGO') ? 'Pago de servicios' :
-						title.includes('CHEQUERA') || title.includes('GESTIÓN') ? 'Gestión de chequeras' :
-						'Desconocido'
+					probableType: title.includes("APERTURA")
+						? "Apertura de cuenta"
+						: title.includes("TARJETA")
+						? "Solicitud de tarjeta"
+						: title.includes("PRESTAMO") || title.includes("SEGUIMIENTO")
+						? "Préstamos/Seguimiento"
+						: title.includes("SERVICIO") || title.includes("PAGO")
+						? "Pago de servicios"
+						: title.includes("CHEQUERA") || title.includes("GESTIÓN")
+						? "Gestión de chequeras"
+						: "Desconocido",
 				});
 			} catch (parseError) {
 				fileAnalysis.push({
 					filename: file,
-					detectedTitle: 'ERROR',
+					detectedTitle: "ERROR",
 					contentPreview: `Error parseando: ${parseError.message}`,
 					size: 0,
-					probableType: 'Error'
+					probableType: "Error",
 				});
 			}
 		}
@@ -622,18 +754,19 @@ app.get("/api/debug/pdf-content", async (req, res) => {
 		res.json({
 			message: "Análisis de contenido real de archivos físicos",
 			physicalFilesAnalysis: fileAnalysis,
-			databasePdfs: dbPdfs.map(pdf => ({
+			databasePdfs: dbPdfs.map((pdf) => ({
 				id: pdf._id,
 				filename: pdf.filename,
-				contentPreview: pdf.content.substring(0, 200)
+				contentPreview: pdf.content.substring(0, 200),
 			})),
-			recommendations: "Comparar el contenido real con el mapeo actual para corregir asignaciones"
+			recommendations:
+				"Comparar el contenido real con el mapeo actual para corregir asignaciones",
 		});
 	} catch (error) {
 		console.error("❌ [DEBUG] Error analizando contenido:", error);
-		res.status(500).json({ 
+		res.status(500).json({
 			error: "Error analizando contenido de archivos",
-			details: error.message
+			details: error.message,
 		});
 	}
 });
@@ -644,15 +777,15 @@ app.get("/api/debug/pdf-ids", async (req, res) => {
 		const generateDescriptiveId = (filename) => {
 			return filename
 				.toLowerCase()
-				.replace(/\s+/g, '-')
-				.replace(/[áàäâ]/g, 'a')
-				.replace(/[éèëê]/g, 'e')
-				.replace(/[íìïî]/g, 'i')
-				.replace(/[óòöô]/g, 'o')
-				.replace(/[úùüû]/g, 'u')
-				.replace(/[ñ]/g, 'n')
-				.replace(/[^a-z0-9\-]/g, '')
-				.replace(/\.pdf$/, '')
+				.replace(/\s+/g, "-")
+				.replace(/[áàäâ]/g, "a")
+				.replace(/[éèëê]/g, "e")
+				.replace(/[íìïî]/g, "i")
+				.replace(/[óòöô]/g, "o")
+				.replace(/[úùüû]/g, "u")
+				.replace(/[ñ]/g, "n")
+				.replace(/[^a-z0-9\-]/g, "")
+				.replace(/\.pdf$/, "")
 				.substring(0, 30);
 		};
 
@@ -660,25 +793,27 @@ app.get("/api/debug/pdf-ids", async (req, res) => {
 			.select("_id filename uploadDate")
 			.sort({ uploadDate: -1 });
 
-		const idsInfo = dbPdfs.map(pdf => ({
+		const idsInfo = dbPdfs.map((pdf) => ({
 			originalId: pdf._id.toString(),
 			descriptiveId: generateDescriptiveId(pdf.filename),
 			filename: pdf.filename,
 			uploadDate: pdf.uploadDate,
 			// Mostrar cómo se vería en el mapeo
-			mappingKey: `"${generateDescriptiveId(pdf.filename)}": "pdf-XXXXX.pdf", // ${pdf.filename}`
+			mappingKey: `"${generateDescriptiveId(
+				pdf.filename
+			)}": "pdf-XXXXX.pdf", // ${pdf.filename}`,
 		}));
 
 		res.json({
 			message: "IDs descriptivos para facilitar mapeo",
 			totalPdfs: dbPdfs.length,
 			idsInfo: idsInfo,
-			instructions: "Usa descriptiveId para mapear archivos de forma más clara"
+			instructions: "Usa descriptiveId para mapear archivos de forma más clara",
 		});
 	} catch (error) {
-		res.status(500).json({ 
+		res.status(500).json({
 			error: "Error generando IDs descriptivos",
-			details: error.message
+			details: error.message,
 		});
 	}
 });
@@ -702,10 +837,11 @@ app.get("/api/debug/pdf-mapping", async (req, res) => {
 		// Mapeo específico actualizado
 		const specificMapping = {
 			"Solicitud de Tarjeta.pdf": "pdf-1762839890353-607425718.pdf",
-			"Solicitud de Prestamos.pdf": "pdf-1762839898137-325926996.pdf", 
+			"Solicitud de Prestamos.pdf": "pdf-1762839898137-325926996.pdf",
 			"Pago de Servicios.pdf": "pdf-1762839910147-424431997.pdf",
 			"Gestión de Chequeras.pdf": "pdf-1762839882812-24906428.pdf",
-			"Manual de apertura de cuenta ejemplo.pdf": "pdf-1762839917088-443931258.pdf",
+			"Manual de apertura de cuenta ejemplo.pdf":
+				"pdf-1762839917088-443931258.pdf",
 		};
 
 		const idMapping = {
@@ -714,17 +850,18 @@ app.get("/api/debug/pdf-mapping", async (req, res) => {
 		};
 
 		// Crear mapeo completo
-		const mappingResults = dbPdfs.map(pdf => {
-			const mappedFile = idMapping[pdf._id.toString()] || specificMapping[pdf.filename];
+		const mappingResults = dbPdfs.map((pdf) => {
+			const mappedFile =
+				idMapping[pdf._id.toString()] || specificMapping[pdf.filename];
 			const exists = physicalFiles.includes(mappedFile);
-			
+
 			return {
 				dbId: pdf._id,
 				title: pdf.filename,
 				originalPath: pdf.filePath,
 				mappedFile: mappedFile,
 				fileExists: exists,
-				uploadDate: pdf.uploadDate
+				uploadDate: pdf.uploadDate,
 			};
 		});
 
@@ -735,14 +872,14 @@ app.get("/api/debug/pdf-mapping", async (req, res) => {
 			mappingResults: mappingResults,
 			mappingTables: {
 				byName: specificMapping,
-				byId: idMapping
-			}
+				byId: idMapping,
+			},
 		});
 	} catch (error) {
 		console.error("❌ [DEBUG] Error en mapeo:", error);
-		res.status(500).json({ 
+		res.status(500).json({
 			error: "Error en debug de mapeo",
-			details: error.message
+			details: error.message,
 		});
 	}
 });
@@ -975,9 +1112,11 @@ app.get("/api/health", (req, res) => {
 app.post("/api/replace-pdf/:id", upload.single("pdf"), async (req, res) => {
 	try {
 		const { id } = req.params;
-		
+
 		if (!req.file) {
-			return res.status(400).json({ error: "No se recibió ningún archivo PDF" });
+			return res
+				.status(400)
+				.json({ error: "No se recibió ningún archivo PDF" });
 		}
 
 		// Buscar el PDF existente
@@ -986,7 +1125,9 @@ app.post("/api/replace-pdf/:id", upload.single("pdf"), async (req, res) => {
 			return res.status(404).json({ error: "PDF no encontrado" });
 		}
 
-		console.log(`🔄 [REPLACE PDF] Reemplazando: ${existingPdf.filename} (ID: ${id})`);
+		console.log(
+			`🔄 [REPLACE PDF] Reemplazando: ${existingPdf.filename} (ID: ${id})`
+		);
 
 		// Parsear el nuevo archivo
 		const pdfBuffer = fs.readFileSync(req.file.path);
@@ -996,10 +1137,12 @@ app.post("/api/replace-pdf/:id", upload.single("pdf"), async (req, res) => {
 		existingPdf.content = pdfData.text;
 		existingPdf.filePath = req.file.path;
 		existingPdf.uploadDate = new Date();
-		
+
 		await existingPdf.save();
 
-		console.log(`✅ [REPLACE PDF] Archivo reemplazado exitosamente: ${existingPdf.filename}`);
+		console.log(
+			`✅ [REPLACE PDF] Archivo reemplazado exitosamente: ${existingPdf.filename}`
+		);
 		console.log(`📂 [REPLACE PDF] Nueva ruta: ${req.file.path}`);
 
 		res.json({
@@ -1009,14 +1152,14 @@ app.post("/api/replace-pdf/:id", upload.single("pdf"), async (req, res) => {
 				filename: existingPdf.filename,
 				uploadDate: existingPdf.uploadDate,
 				filePath: existingPdf.filePath,
-				contentPreview: pdfData.text.substring(0, 200)
-			}
+				contentPreview: pdfData.text.substring(0, 200),
+			},
 		});
 	} catch (error) {
 		console.error("❌ [REPLACE PDF] Error:", error);
-		res.status(500).json({ 
+		res.status(500).json({
 			error: "Error reemplazando el PDF",
-			details: error.message 
+			details: error.message,
 		});
 	}
 });
@@ -1028,21 +1171,28 @@ app.get("/api/pdfs-for-replacement", async (req, res) => {
 			.select("_id filename uploadDate content filePath")
 			.sort({ uploadDate: -1 });
 
-		const pdfList = pdfs.map(pdf => ({
+		const pdfList = pdfs.map((pdf) => ({
 			id: pdf._id,
 			filename: pdf.filename,
 			uploadDate: pdf.uploadDate,
 			filePath: pdf.filePath,
 			contentPreview: pdf.content.substring(0, 100),
-			needsReplacement: !pdf.content.toLowerCase().includes(
-				pdf.filename.toLowerCase().replace('.pdf', '').replace(/\s+/g, '').substring(0, 8)
-			)
+			needsReplacement: !pdf.content
+				.toLowerCase()
+				.includes(
+					pdf.filename
+						.toLowerCase()
+						.replace(".pdf", "")
+						.replace(/\s+/g, "")
+						.substring(0, 8)
+				),
 		}));
 
 		res.json({
 			message: "Lista de PDFs para reemplazo",
 			pdfs: pdfList,
-			instructions: "Usa POST /api/replace-pdf/:id para reemplazar cada archivo"
+			instructions:
+				"Usa POST /api/replace-pdf/:id para reemplazar cada archivo",
 		});
 	} catch (error) {
 		console.error("❌ [REPLACEMENT LIST] Error:", error);
