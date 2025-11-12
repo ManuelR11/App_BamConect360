@@ -618,6 +618,86 @@ app.get("/api/debug/csp-test", (req, res) => {
 	});
 });
 
+// Ruta de debug para verificar contenido real de archivos físicos
+app.get("/api/debug/pdf-content", async (req, res) => {
+	try {
+		console.log("🔍 [DEBUG] Analizando contenido real de archivos físicos...");
+
+		const uploadsDir = path.join(__dirname, "uploads");
+		const physicalFiles = fs
+			.readdirSync(uploadsDir)
+			.filter((file) => file.endsWith(".pdf"))
+			.slice(0, 10); // Limitar a los primeros 10 archivos
+
+		const fileAnalysis = [];
+
+		for (const file of physicalFiles) {
+			try {
+				const filePath = path.join(uploadsDir, file);
+				const pdfBuffer = fs.readFileSync(filePath);
+				const parsedPdf = await pdfParse(pdfBuffer);
+				const content = parsedPdf.text;
+				
+				// Extraer las primeras líneas para identificar el contenido
+				const lines = content.split('\n').filter(line => line.trim()).slice(0, 10);
+				const title = lines.find(line => 
+					line.includes('APERTURA') || 
+					line.includes('TARJETA') || 
+					line.includes('PRESTAMO') || 
+					line.includes('SERVICIO') || 
+					line.includes('CHEQUERA') ||
+					line.includes('SEGUIMIENTO') ||
+					line.includes('PAGO')
+				) || lines[0] || '';
+
+				fileAnalysis.push({
+					filename: file,
+					detectedTitle: title.trim(),
+					contentPreview: lines.slice(0, 5).join(' | '),
+					size: pdfBuffer.length,
+					probableType: 
+						title.includes('APERTURA') ? 'Apertura de cuenta' :
+						title.includes('TARJETA') ? 'Solicitud de tarjeta' :
+						title.includes('PRESTAMO') || title.includes('SEGUIMIENTO') ? 'Préstamos/Seguimiento' :
+						title.includes('SERVICIO') || title.includes('PAGO') ? 'Pago de servicios' :
+						title.includes('CHEQUERA') || title.includes('GESTIÓN') ? 'Gestión de chequeras' :
+						'Desconocido'
+				});
+			} catch (parseError) {
+				fileAnalysis.push({
+					filename: file,
+					detectedTitle: 'ERROR',
+					contentPreview: `Error parseando: ${parseError.message}`,
+					size: 0,
+					probableType: 'Error'
+				});
+			}
+		}
+
+		// Obtener PDFs de BD para comparar
+		const dbPdfs = await PDFContent.find({ isActive: true })
+			.select("_id filename content")
+			.sort({ uploadDate: -1 });
+
+		res.json({
+			message: "Análisis de contenido real de archivos físicos",
+			physicalFilesAnalysis: fileAnalysis,
+			databasePdfs: dbPdfs.map(pdf => ({
+				id: pdf._id,
+				filename: pdf.filename,
+				contentPreview: pdf.content.substring(0, 200)
+			})),
+			recommendations: "Comparar el contenido real con el mapeo actual para corregir asignaciones"
+		});
+	} catch (error) {
+		console.error("❌ [DEBUG] Error analizando contenido:", error);
+		res.status(500).json({ 
+			error: "Error analizando contenido de archivos",
+			details: error.message
+		});
+	}
+});
+
 // Ruta de debug para verificar mapeo correcto
 app.get("/api/debug/pdf-mapping", async (req, res) => {
 	try {
