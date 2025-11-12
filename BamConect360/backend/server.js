@@ -392,20 +392,20 @@ const servePdfAsBase64 = async (req, res) => {
 						`🔍 [PDF BASE64] Iniciando mapeo inteligente para: "${pdf.filename}" (ID: ${pdf._id})`
 					);
 
-					// PRIORIDAD 1: Mapeo específico por ID (más confiable)
+					// PRIORIDAD 1: Mapeo específico por ID (CORREGIDO basado en contenido real observado)
 					const idMapping = {
-						"6913814a8717b6e77a788616": "pdf-1762839910147-424431997.pdf", // Pago de Servicios
-						"6913815c8717b6e77a788622": "pdf-1762839890353-607425718.pdf", // Solicitud de Tarjeta
-						"6913813b8717b6e77a78860e": "pdf-1762839917088-443931258.pdf", // Manual de apertura de cuenta
+						"6913814a8717b6e77a788616": "pdf-1762839882812-24906428.pdf", // Pago de Servicios -> probar con chequeras
+						"6913815c8717b6e77a788622": "pdf-1762839890353-607425718.pdf", // Solicitud de Tarjeta 
+						"6913813b8717b6e77a78860e": "pdf-1762839898137-325926996.pdf", // Manual de apertura -> probar con otro archivo
 					};
 
-					// PRIORIDAD 2: Mapeo específico por nombre
+					// PRIORIDAD 2: Mapeo específico por nombre (CORREGIDO - intercambiar archivos)
 					const specificMapping = {
 						"Solicitud de Tarjeta.pdf": "pdf-1762839890353-607425718.pdf", // Tarjetas
-						"Solicitud de Prestamos.pdf": "pdf-1762839898137-325926996.pdf", // Préstamos
+						"Solicitud de Prestamos.pdf": "pdf-1762839917088-443931258.pdf", // Préstamos -> el que mostraba seguimiento
 						"Pago de Servicios.pdf": "pdf-1762839910147-424431997.pdf", // Servicios
 						"Gestión de Chequeras.pdf": "pdf-1762839882812-24906428.pdf", // Chequeras (original)
-						"Manual de apertura de cuenta ejemplo.pdf": "pdf-1762839917088-443931258.pdf", // Apertura
+						"Manual de apertura de cuenta ejemplo.pdf": "pdf-1762839898137-325926996.pdf", // Apertura -> cambiar archivo
 					};
 
 					let matchingFile = null;
