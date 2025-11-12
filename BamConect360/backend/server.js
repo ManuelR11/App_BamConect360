@@ -544,17 +544,17 @@ const servePdfAsBase64 = async (req, res) => {
 						`🔍 [PDF BASE64] Mapeo DIRECTO para: "${pdf.filename}" (ID: ${pdf._id})`
 					);
 
-					// MAPEO DIRECTO CON IDs HARDCODEADOS (basado en la imagen enviada)
+					// MAPEO DIRECTO CON IDs HARDCODEADOS (ACTUALIZADOS según imagen)
 					const directMapping = {
 						// IDs exactos de la base de datos -> archivos físicos
 						"6913e567e1eb99ecefba0c4a": "pdf-1762839882812-24906428.pdf", // Gestion de Chequeras.pdf
-						"6913e04fe021447199000d98e": "pdf-1762839955729-521323488.pdf", // Consulta de Saldos y Movimientos.pdf
-						"6913e05be021447199000d992": "pdf-1762839898137-325926996.pdf", // Manual de apertura de cuenta ejemplo.pdf
-						"6913e063e021447199000d996": "pdf-1762839922766-525834752.pdf", // Manual de inversion a plazo fijo.pdf
-						"6913e078e021447199000d99a": "pdf-1762839910147-424431997.pdf", // Pago de Servicios.pdf
-						"6913e07ee021447199000d99e": "pdf-1762839927397-384975741.pdf", // Seguimiento de Prestamos.pdf
-						"6913e084e021447199000d9a2": "pdf-1762839917088-443931258.pdf", // Solicitud de Prestamos.pdf
-						"6913e088e021447199000d9a6": "pdf-1762839890353-607425718.pdf", // Solicitud de Tarjeta.pdf
+						"6913e04fe02144719900d98e": "pdf-1762839955729-521323488.pdf", // Consulta de Saldos y Movimientos.pdf
+						"6913e05be02144719900d992": "pdf-1762839898137-325926996.pdf", // Manual de apertura de cuenta ejemplo.pdf
+						"6913e063e02144719900d996": "pdf-1762839922766-525834752.pdf", // Manual de inversion a plazo fijo.pdf
+						"6913e078e02144719900d99a": "pdf-1762839910147-424431997.pdf", // Pago de Servicios.pdf
+						"6913e07ee02144719900d99e": "pdf-1762839927397-384975741.pdf", // Seguimiento de Prestamos.pdf
+						"6913e084e02144719900d9a2": "pdf-1762839917088-443931258.pdf", // Solicitud de Prestamos.pdf
+						"6913e088e02144719900d9a6": "pdf-1762839890353-607425718.pdf", // Solicitud de Tarjeta.pdf
 					};
 
 					let matchingFile = null;
@@ -673,16 +673,16 @@ const migratePdfsToMongoDB = async () => {
 		
 		for (const pdf of pdfs) {
 			try {
-				// Mapeo de IDs a archivos físicos
+				// Mapeo de IDs a archivos físicos (ACTUALIZADOS según imagen)
 				const fileMapping = {
 					"6913e567e1eb99ecefba0c4a": "pdf-1762839882812-24906428.pdf", // Gestion de Chequeras.pdf
-					"6913e04fe021447199000d98e": "pdf-1762839955729-521323488.pdf", // Consulta de Saldos y Movimientos.pdf
-					"6913e05be021447199000d992": "pdf-1762839898137-325926996.pdf", // Manual de apertura de cuenta ejemplo.pdf
-					"6913e063e021447199000d996": "pdf-1762839922766-525834752.pdf", // Manual de inversion a plazo fijo.pdf
-					"6913e078e021447199000d99a": "pdf-1762839910147-424431997.pdf", // Pago de Servicios.pdf
-					"6913e07ee021447199000d99e": "pdf-1762839927397-384975741.pdf", // Seguimiento de Prestamos.pdf
-					"6913e084e021447199000d9a2": "pdf-1762839917088-443931258.pdf", // Solicitud de Prestamos.pdf
-					"6913e088e021447199000d9a6": "pdf-1762839890353-607425718.pdf", // Solicitud de Tarjeta.pdf
+					"6913e04fe02144719900d98e": "pdf-1762839955729-521323488.pdf", // Consulta de Saldos y Movimientos.pdf
+					"6913e05be02144719900d992": "pdf-1762839898137-325926996.pdf", // Manual de apertura de cuenta ejemplo.pdf
+					"6913e063e02144719900d996": "pdf-1762839922766-525834752.pdf", // Manual de inversion a plazo fijo.pdf
+					"6913e078e02144719900d99a": "pdf-1762839910147-424431997.pdf", // Pago de Servicios.pdf
+					"6913e07ee02144719900d99e": "pdf-1762839927397-384975741.pdf", // Seguimiento de Prestamos.pdf
+					"6913e084e02144719900d9a2": "pdf-1762839917088-443931258.pdf", // Solicitud de Prestamos.pdf
+					"6913e088e02144719900d9a6": "pdf-1762839890353-607425718.pdf", // Solicitud de Tarjeta.pdf
 				};
 				
 				const fileName = fileMapping[pdf._id.toString()];
@@ -1313,6 +1313,7 @@ app.post("/api/upload-pdf", upload.single("pdf"), async (req, res) => {
 			filename: req.file.originalname,
 			content: pdfData.text,
 			filePath: req.file.path,
+			pdfBinary: pdfBuffer, // Guardar el PDF completo con formato original
 		});
 
 		await pdfContent.save();
