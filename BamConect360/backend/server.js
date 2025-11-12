@@ -434,7 +434,7 @@ const servePdfAsBase64 = async (req, res) => {
 					// MAPEO DIRECTO CON IDs HARDCODEADOS (basado en la imagen enviada)
 					const directMapping = {
 						// IDs exactos de la base de datos -> archivos físicos
-						"6913e044e021447199000d98a": "pdf-1762839882812-24906428.pdf", // Gestion de Chequeras.pdf
+						"6913e567e1eb99ecefba0c4a": "pdf-1762839882812-24906428.pdf", // Gestion de Chequeras.pdf
 						"6913e04fe021447199000d98e": "pdf-1762839955729-521323488.pdf", // Consulta de Saldos y Movimientos.pdf
 						"6913e05be021447199000d992": "pdf-1762839898137-325926996.pdf", // Manual de apertura de cuenta ejemplo.pdf
 						"6913e063e021447199000d996": "pdf-1762839922766-525834752.pdf", // Manual de inversion a plazo fijo.pdf
