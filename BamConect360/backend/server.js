@@ -607,16 +607,15 @@ const servePdfAsBase64 = async (req, res) => {
 		}
 
 		console.log(
-			`🎯 [PDF BASE64] USANDO PDF ORIGINAL con formato completo: ${targetFilePath}`
+			`🎯 [PDF BASE64] USANDO CONTENIDO ACTUALIZADO DE MONGODB para: ${pdf.filename}`
 		);
 
-		// LEER EL PDF ORIGINAL del disco (mantiene formato, colores, estilos, etc.)
-		const pdfBuffer = fs.readFileSync(targetFilePath);
-		const base64Data = pdfBuffer.toString('base64');
-		const fileSize = pdfBuffer.length;
+		// GENERAR PDF CON EL CONTENIDO ACTUALIZADO DE MONGODB (no archivos físicos cacheados)
+		const base64Data = await createSimplePDFBase64(pdf.filename, pdf.content);
+		const fileSize = Buffer.from(base64Data, 'base64').length;
 
 		console.log(
-			`✅ [PDF BASE64] PDF original leído desde disco: ${fileSize} bytes`
+			`✅ [PDF BASE64] PDF generado desde contenido actualizado de MongoDB: ${fileSize} bytes`
 		);
 
 		console.log(
