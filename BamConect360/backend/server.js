@@ -174,6 +174,11 @@ const pdfContentSchema = new mongoose.Schema({
 		type: String,
 		required: true,
 	},
+	// Nuevo campo para almacenar el PDF binario original con formato completo
+	pdfBinary: {
+		type: Buffer,
+		required: false, // Opcional para mantener compatibilidad con documentos existentes
+	},
 	filePath: {
 		type: String,
 		required: true,
@@ -606,17 +611,26 @@ const servePdfAsBase64 = async (req, res) => {
 			}
 		}
 
-		console.log(
-			`🎯 [PDF BASE64] USANDO CONTENIDO ACTUALIZADO DE MONGODB para: ${pdf.filename}`
-		);
+		let base64Data;
+		let fileSize;
+		let sourceType;
 
-		// GENERAR PDF CON EL CONTENIDO ACTUALIZADO DE MONGODB (no archivos físicos cacheados)
-		const base64Data = await createSimplePDFBase64(pdf.filename, pdf.content);
-		const fileSize = Buffer.from(base64Data, 'base64').length;
-
-		console.log(
-			`✅ [PDF BASE64] PDF generado desde contenido actualizado de MongoDB: ${fileSize} bytes`
-		);
+		// PRIORIDAD 1: Usar PDF binario original si está disponible (mantiene formato completo)
+		if (pdf.pdfBinary && pdf.pdfBinary.length > 0) {
+			console.log(`🎯 [PDF BASE64] USANDO PDF BINARIO ORIGINAL con formato completo: ${pdf.filename}`);
+			base64Data = pdf.pdfBinary.toString('base64');
+			fileSize = pdf.pdfBinary.length;
+			sourceType = 'PDF_BINARIO_ORIGINAL';
+			console.log(`✅ [PDF BASE64] PDF binario original usado: ${fileSize} bytes`);
+		} 
+		// PRIORIDAD 2: Generar desde texto si no hay PDF binario
+		else {
+			console.log(`🎯 [PDF BASE64] PDF binario no disponible, generando desde texto: ${pdf.filename}`);
+			base64Data = await createSimplePDFBase64(pdf.filename, pdf.content);
+			fileSize = Buffer.from(base64Data, 'base64').length;
+			sourceType = 'GENERADO_DESDE_TEXTO';
+			console.log(`✅ [PDF BASE64] PDF generado desde texto: ${fileSize} bytes`);
+		}
 
 		console.log(
 			`📄 [PDF BASE64] PDF convertido a Base64: ${pdf.filename} (${fileSize} bytes)`
@@ -638,14 +652,73 @@ const servePdfAsBase64 = async (req, res) => {
 			base64: base64Data,
 			contentType: "application/pdf",
 			pdfId: pdf._id,
-			generatedFromDB: true,
+			sourceType: sourceType,
+			hasPdfBinary: !!(pdf.pdfBinary && pdf.pdfBinary.length > 0),
 			contentLength: pdf.content ? pdf.content.length : 0,
+			fileSize: fileSize
 		});
 	} catch (error) {
 		console.error("❌ [PDF BASE64] Error:", error);
 		res.status(500).json({ error: "Error obteniendo el PDF" });
 	}
 };
+
+// 🔄 FUNCIÓN PARA MIGRAR PDFs FÍSICOS A BINARIO EN MONGODB
+const migratePdfsToMongoDB = async () => {
+	console.log('🔄 [MIGRATION] Iniciando migración de PDFs físicos a MongoDB...');
+	
+	try {
+		const pdfs = await PDFContent.find({ pdfBinary: { $exists: false } });
+		console.log(`📋 [MIGRATION] Encontrados ${pdfs.length} PDFs sin binario`);
+		
+		for (const pdf of pdfs) {
+			try {
+				// Mapeo de IDs a archivos físicos
+				const fileMapping = {
+					"6913e567e1eb99ecefba0c4a": "pdf-1762839882812-24906428.pdf", // Gestion de Chequeras.pdf
+					"6913e04fe021447199000d98e": "pdf-1762839955729-521323488.pdf", // Consulta de Saldos y Movimientos.pdf
+					"6913e05be021447199000d992": "pdf-1762839898137-325926996.pdf", // Manual de apertura de cuenta ejemplo.pdf
+					"6913e063e021447199000d996": "pdf-1762839922766-525834752.pdf", // Manual de inversion a plazo fijo.pdf
+					"6913e078e021447199000d99a": "pdf-1762839910147-424431997.pdf", // Pago de Servicios.pdf
+					"6913e07ee021447199000d99e": "pdf-1762839927397-384975741.pdf", // Seguimiento de Prestamos.pdf
+					"6913e084e021447199000d9a2": "pdf-1762839917088-443931258.pdf", // Solicitud de Prestamos.pdf
+					"6913e088e021447199000d9a6": "pdf-1762839890353-607425718.pdf", // Solicitud de Tarjeta.pdf
+				};
+				
+				const fileName = fileMapping[pdf._id.toString()];
+				if (fileName) {
+					const filePath = path.join(__dirname, "uploads", fileName);
+					if (fs.existsSync(filePath)) {
+						const pdfBuffer = fs.readFileSync(filePath);
+						pdf.pdfBinary = pdfBuffer;
+						await pdf.save();
+						console.log(`✅ [MIGRATION] Migrado: ${pdf.filename} (${pdfBuffer.length} bytes)`);
+					} else {
+						console.log(`⚠️ [MIGRATION] Archivo no encontrado: ${fileName} para ${pdf.filename}`);
+					}
+				} else {
+					console.log(`⚠️ [MIGRATION] Sin mapeo para ID: ${pdf._id} (${pdf.filename})`);
+				}
+			} catch (error) {
+				console.log(`❌ [MIGRATION] Error migrando ${pdf.filename}: ${error.message}`);
+			}
+		}
+		
+		console.log('✅ [MIGRATION] Migración completada');
+	} catch (error) {
+		console.log(`❌ [MIGRATION] Error en migración: ${error.message}`);
+	}
+};
+
+// Ruta para ejecutar la migración manualmente
+app.get("/admin/migrate-pdfs", async (req, res) => {
+	try {
+		await migratePdfsToMongoDB();
+		res.json({ success: true, message: "Migración completada" });
+	} catch (error) {
+		res.status(500).json({ error: error.message });
+	}
+});
 
 // ⚠️ RUTAS CRÍTICAS DE PDF - DEBEN ESTAR ANTES DE LOS ARCHIVOS ESTÁTICOS
 app.get("/documents/test", (req, res) => {
