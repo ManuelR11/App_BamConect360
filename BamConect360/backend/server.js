@@ -392,12 +392,41 @@ const servePdfAsBase64 = async (req, res) => {
 						`🔍 [PDF BASE64] Iniciando mapeo inteligente para: "${pdf.filename}" (ID: ${pdf._id})`
 					);
 
-					// PRIORIDAD 1: Mapeo específico por ID (CORREGIDO basado en contenido real observado)
-					const idMapping = {
-						"6913814a8717b6e77a788616": "pdf-1762839882812-24906428.pdf", // Pago de Servicios -> probar con chequeras
-						"6913815c8717b6e77a788622": "pdf-1762839890353-607425718.pdf", // Solicitud de Tarjeta 
-						"6913813b8717b6e77a78860e": "pdf-1762839898137-325926996.pdf", // Manual de apertura -> probar con otro archivo
+					// FUNCIÓN para generar ID descriptivo basado en el título
+					const generateDescriptiveId = (filename) => {
+						return filename
+							.toLowerCase()
+							.replace(/\s+/g, '-')                    // espacios -> guiones
+							.replace(/[áàäâ]/g, 'a')                 // acentos
+							.replace(/[éèëê]/g, 'e')
+							.replace(/[íìïî]/g, 'i')
+							.replace(/[óòöô]/g, 'o')
+							.replace(/[úùüû]/g, 'u')
+							.replace(/[ñ]/g, 'n')
+							.replace(/[^a-z0-9\-]/g, '')             // solo letras, números y guiones
+							.replace(/\.pdf$/, '')                   // quitar .pdf
+							.substring(0, 30);                      // máximo 30 caracteres
 					};
+
+					// PRIORIDAD 1: Mapeo específico por ID descriptivo (más fácil de identificar)
+					const descriptiveIdMapping = {
+						// IDs descriptivos generados automáticamente
+						[generateDescriptiveId("Pago de Servicios.pdf")]: "pdf-1762839910147-424431997.pdf", // pago-de-servicios
+						[generateDescriptiveId("Solicitud de Tarjeta.pdf")]: "pdf-1762839890353-607425718.pdf", // solicitud-de-tarjeta
+						[generateDescriptiveId("Manual de apertura de cuenta ejemplo.pdf")]: "pdf-1762839898137-325926996.pdf", // manual-de-apertura-de-cuenta-ej
+						[generateDescriptiveId("Gestión de Chequeras.pdf")]: "pdf-1762839882812-24906428.pdf", // gestion-de-chequeras
+						[generateDescriptiveId("Solicitud de Prestamos.pdf")]: "pdf-1762839917088-443931258.pdf", // solicitud-de-prestamos
+					};
+
+					// También mantener mapeo por IDs originales para compatibilidad
+					const originalIdMapping = {
+						"6913814a8717b6e77a788616": "pdf-1762839910147-424431997.pdf", // Pago de Servicios
+						"6913815c8717b6e77a788622": "pdf-1762839890353-607425718.pdf", // Solicitud de Tarjeta 
+						"6913813b8717b6e77a78860e": "pdf-1762839898137-325926996.pdf", // Manual de apertura
+					};
+
+					// Combinar ambos mapeos
+					const idMapping = { ...originalIdMapping, ...descriptiveIdMapping };
 
 					// PRIORIDAD 2: Mapeo específico por nombre (CORREGIDO - intercambiar archivos)
 					const specificMapping = {
@@ -410,11 +439,19 @@ const servePdfAsBase64 = async (req, res) => {
 
 					let matchingFile = null;
 
-					// 1. PRIORIDAD MÁXIMA: Buscar por ID específico
-					if (idMapping[pdf._id.toString()] && availableFiles.includes(idMapping[pdf._id.toString()])) {
-						matchingFile = idMapping[pdf._id.toString()];
+					// 1. PRIORIDAD MÁXIMA: Buscar por ID específico (original o descriptivo)
+					const descriptiveKey = generateDescriptiveId(pdf.filename);
+					const originalId = pdf._id.toString();
+					
+					if (idMapping[originalId] && availableFiles.includes(idMapping[originalId])) {
+						matchingFile = idMapping[originalId];
 						console.log(
-							`🎯 [PDF BASE64] Mapeo por ID encontrado: ${pdf._id} -> ${matchingFile}`
+							`🎯 [PDF BASE64] Mapeo por ID original encontrado: ${originalId} -> ${matchingFile}`
+						);
+					} else if (idMapping[descriptiveKey] && availableFiles.includes(idMapping[descriptiveKey])) {
+						matchingFile = idMapping[descriptiveKey];
+						console.log(
+							`🎯 [PDF BASE64] Mapeo por ID descriptivo encontrado: "${pdf.filename}" -> ${descriptiveKey} -> ${matchingFile}`
 						);
 					}
 					// 2. SEGUNDA PRIORIDAD: Buscar por nombre específico
@@ -693,6 +730,51 @@ app.get("/api/debug/pdf-content", async (req, res) => {
 		console.error("❌ [DEBUG] Error analizando contenido:", error);
 		res.status(500).json({ 
 			error: "Error analizando contenido de archivos",
+			details: error.message
+		});
+	}
+});
+
+// Ruta de debug para mostrar IDs descriptivos
+app.get("/api/debug/pdf-ids", async (req, res) => {
+	try {
+		const generateDescriptiveId = (filename) => {
+			return filename
+				.toLowerCase()
+				.replace(/\s+/g, '-')
+				.replace(/[áàäâ]/g, 'a')
+				.replace(/[éèëê]/g, 'e')
+				.replace(/[íìïî]/g, 'i')
+				.replace(/[óòöô]/g, 'o')
+				.replace(/[úùüû]/g, 'u')
+				.replace(/[ñ]/g, 'n')
+				.replace(/[^a-z0-9\-]/g, '')
+				.replace(/\.pdf$/, '')
+				.substring(0, 30);
+		};
+
+		const dbPdfs = await PDFContent.find({ isActive: true })
+			.select("_id filename uploadDate")
+			.sort({ uploadDate: -1 });
+
+		const idsInfo = dbPdfs.map(pdf => ({
+			originalId: pdf._id.toString(),
+			descriptiveId: generateDescriptiveId(pdf.filename),
+			filename: pdf.filename,
+			uploadDate: pdf.uploadDate,
+			// Mostrar cómo se vería en el mapeo
+			mappingKey: `"${generateDescriptiveId(pdf.filename)}": "pdf-XXXXX.pdf", // ${pdf.filename}`
+		}));
+
+		res.json({
+			message: "IDs descriptivos para facilitar mapeo",
+			totalPdfs: dbPdfs.length,
+			idsInfo: idsInfo,
+			instructions: "Usa descriptiveId para mapear archivos de forma más clara"
+		});
+	} catch (error) {
+		res.status(500).json({ 
+			error: "Error generando IDs descriptivos",
 			details: error.message
 		});
 	}
@@ -983,6 +1065,85 @@ app.get("/api/health", (req, res) => {
 	} catch (error) {
 		console.error("Error en health check:", error);
 		res.status(500).json({ error: "Error interno del servidor" });
+	}
+});
+
+// Ruta para REEMPLAZAR un PDF existente con el archivo correcto
+app.post("/api/replace-pdf/:id", upload.single("pdf"), async (req, res) => {
+	try {
+		const { id } = req.params;
+		
+		if (!req.file) {
+			return res.status(400).json({ error: "No se recibió ningún archivo PDF" });
+		}
+
+		// Buscar el PDF existente
+		const existingPdf = await PDFContent.findById(id);
+		if (!existingPdf) {
+			return res.status(404).json({ error: "PDF no encontrado" });
+		}
+
+		console.log(`🔄 [REPLACE PDF] Reemplazando: ${existingPdf.filename} (ID: ${id})`);
+
+		// Parsear el nuevo archivo
+		const pdfBuffer = fs.readFileSync(req.file.path);
+		const pdfData = await pdfParse(pdfBuffer);
+
+		// Actualizar el registro existente con el nuevo archivo
+		existingPdf.content = pdfData.text;
+		existingPdf.filePath = req.file.path;
+		existingPdf.uploadDate = new Date();
+		
+		await existingPdf.save();
+
+		console.log(`✅ [REPLACE PDF] Archivo reemplazado exitosamente: ${existingPdf.filename}`);
+		console.log(`📂 [REPLACE PDF] Nueva ruta: ${req.file.path}`);
+
+		res.json({
+			message: "PDF reemplazado exitosamente",
+			pdf: {
+				_id: existingPdf._id,
+				filename: existingPdf.filename,
+				uploadDate: existingPdf.uploadDate,
+				filePath: existingPdf.filePath,
+				contentPreview: pdfData.text.substring(0, 200)
+			}
+		});
+	} catch (error) {
+		console.error("❌ [REPLACE PDF] Error:", error);
+		res.status(500).json({ 
+			error: "Error reemplazando el PDF",
+			details: error.message 
+		});
+	}
+});
+
+// Ruta para obtener lista de PDFs con IDs para reemplazo
+app.get("/api/pdfs-for-replacement", async (req, res) => {
+	try {
+		const pdfs = await PDFContent.find({ isActive: true })
+			.select("_id filename uploadDate content filePath")
+			.sort({ uploadDate: -1 });
+
+		const pdfList = pdfs.map(pdf => ({
+			id: pdf._id,
+			filename: pdf.filename,
+			uploadDate: pdf.uploadDate,
+			filePath: pdf.filePath,
+			contentPreview: pdf.content.substring(0, 100),
+			needsReplacement: !pdf.content.toLowerCase().includes(
+				pdf.filename.toLowerCase().replace('.pdf', '').replace(/\s+/g, '').substring(0, 8)
+			)
+		}));
+
+		res.json({
+			message: "Lista de PDFs para reemplazo",
+			pdfs: pdfList,
+			instructions: "Usa POST /api/replace-pdf/:id para reemplazar cada archivo"
+		});
+	} catch (error) {
+		console.error("❌ [REPLACEMENT LIST] Error:", error);
+		res.status(500).json({ error: "Error obteniendo lista de PDFs" });
 	}
 });
 
